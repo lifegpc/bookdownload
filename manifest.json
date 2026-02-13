@@ -1,0 +1,35 @@
+{
+    "name": "电子书下载器",
+    "description": "一个用于下载电子书的浏览器扩展",
+    "version": "1.0.0",
+    "manifest_version": 3,
+    "icons": {
+        "16": "ico/16.png",
+        "48": "ico/48.png",
+        "128": "ico/128.png"
+    },
+    "host_permissions": [
+        "https://*.qidian.com/",
+        "http://*.qidian.com/"
+    ],
+    "action": {
+        "default_icon": {
+            "19": "ico/19.png",
+            "38": "ico/38.png"
+        },
+        "default_title": "电子书下载器",
+        "default_popup": "dist/popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://*.qidian.com/chapter/*",
+                "http://*.qidian.com/chapter/*"
+            ],
+            "js": [
+                "dist/qdchapter.js"
+            ],
+            "run_at": "document_start"
+        }
+    ]
+}
