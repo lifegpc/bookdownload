@@ -7,13 +7,13 @@ const is_dev = process.argv.includes('--dev');
 const is_dbg = process.argv.includes('--debug');
 const no_source_map = process.argv.includes('--no-sourcemap');
 
-function sourcemap() {
+function sourcemap(is_content_script = false) {
     if (no_source_map) return false;
-    if (is_dev) return "inline";
+    if (is_dev && is_content_script) return "inline";
     return true;
 }
 
-async function build(name) {
+async function build(name, is_content_script = true) {
     return await esbuild.build({
         entryPoints: [`src/${name}.ts`],
         bundle: true,
@@ -21,42 +21,36 @@ async function build(name) {
         outfile: `dist/${name}.js`,
         platform: 'browser',
         target: ['chrome100'],
-        sourcemap: sourcemap(),
+        sourcemap: sourcemap(is_content_script),
     })
 }
 
-async function buildTsx(name) {
+async function buildTsx(names) {
+    const entryPoints = [];
+    for (const name of names) {
+        entryPoints.push(`src/${name}.tsx`);
+    }
     await esbuild.build({
-        entryPoints: [`src/${name}.tsx`],
+        entryPoints: entryPoints,
         bundle: true,
         minify: !is_dbg,
-        outfile: `dist/${name}.js`,
+        outdir: 'dist',
         platform: 'browser',
         target: ['chrome100'],
         sourcemap: sourcemap(),
         jsx: 'automatic',
         loader: { '.css': 'global-css', '.module.css': 'local-css' },
+        splitting: true,
+        format: 'esm',
     });
-
-    // 确保输出目录存在并写入同名 HTML
-    fs.mkdirSync(path.dirname(`dist/${name}.html`), { recursive: true });
-    const cssFile = `dist/${name}.css`;
-    const cssLink = fs.existsSync(cssFile) ? `<link rel="stylesheet" href="./${name}.css"/>` : '';
-    const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>${name}</title>
-  ${cssLink}
-</head>
-<body>
-  <div id="root"></div>
-  <script src="./${name}.js"></script>
-</body>
-</html>`;
-    fs.writeFileSync(`dist/${name}.html`, html, 'utf8');
+    for (const name of names) {
+        const srcHtmlPath = path.join('src', `${name}.html`);
+        const distHtmlPath = path.join('dist', `${name}.html`);
+        fs.copyFileSync(srcHtmlPath, distHtmlPath);
+    }
 }
 
+fs.rmSync('dist', { recursive: true, force: true });
+fs.mkdirSync('dist', { recursive: true });
 await build('qdchapter');
-await buildTsx('popup');
+await buildTsx(['popup', 'settings']);

@@ -3,7 +3,7 @@ import { Descriptions, Card, Typography, Tag, Space, Button } from 'antd';
 import type { BookInfo, ChapterInfo } from '../qdtypes';
 import { get_chapter_content, saveAsFile } from '../utils';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 interface QdChapterInfoProps {
     bookInfo: BookInfo;
@@ -127,7 +127,7 @@ export default function QdChapterInfo({ bookInfo, chapterInfo }: QdChapterInfoPr
             {/* 章节内容 */}
             <Card title="章节内容" size="small">
                 {chapters.map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
+                    <Paragraph key={index}>{paragraph}</Paragraph>
                 ))}
             </Card>
         </Space>

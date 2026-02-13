@@ -1,4 +1,4 @@
-import { UrlParams, SendMessage, Message } from "./types";
+import type { UrlParams, SendMessage, Message } from "./types";
 
 export const QD_CHAPTER_URLPATH_REGEX = /^\/chapter\/(\d+)\/(\d+)\/?$/;
 
@@ -57,4 +57,16 @@ export function saveAsFile(filename: string, content: string, mimeType: string =
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+export async function saveConfig(key: string, config: any): Promise<void> {
+    return await chrome.storage.managed.set({ [key]: config });
+}
+
+export async function loadConfig<T>(key: string, defaultValue: T): Promise<T> {
+    const r = await chrome.storage.managed.get<{[key]: T | undefined}>(key);
+    if (r[key] === undefined) {
+        return defaultValue;
+    }
+    return r[key];
 }
