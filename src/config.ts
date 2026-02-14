@@ -18,6 +18,9 @@ export class QdConfig {
         }
         await saveConfig(QdConfig.STORAGE_KEY, this.config);
     }
+    reset() {
+        this.config = {};
+    }
     get AutoSaveChapter(): boolean {
         return this.config?.AutoSaveChapter ?? false;
     }

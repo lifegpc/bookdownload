@@ -54,7 +54,7 @@ function PopupBody() {
         load().catch(e => {
             setError(e instanceof Error ? e.message : 'Unknown error');
         });
-    });
+    }, []);
     if (result) {
         console.log(result);
         if (result.ok && result.body?.type === 'QdChapterInfo') {

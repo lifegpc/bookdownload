@@ -60,11 +60,11 @@ export function saveAsFile(filename: string, content: string, mimeType: string =
 }
 
 export async function saveConfig(key: string, config: any): Promise<void> {
-    return await chrome.storage.managed.set({ [key]: config });
+    return await chrome.storage.local.set({ [key]: config });
 }
 
 export async function loadConfig<T>(key: string, defaultValue: T): Promise<T> {
-    const r = await chrome.storage.managed.get<{[key]: T | undefined}>(key);
+    const r = await chrome.storage.local.get<{[key]: T | undefined}>(key);
     if (r[key] === undefined) {
         return defaultValue;
     }

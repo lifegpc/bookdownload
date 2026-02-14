@@ -45,7 +45,7 @@ export default function QdChapterInfo({ bookInfo, chapterInfo }: QdChapterInfoPr
     }
 
     return (
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
             {/* 章节信息 */}
             <Card title="章节信息" size="small">
                 <Descriptions column={1} size="small">
