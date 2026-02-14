@@ -10,8 +10,8 @@ export type SwitchLabelProps = {
 export default function SwitchLabel({ label, checked, onChange }: SwitchLabelProps) {
     return (
         <div className={styles["switch-label"]}>
-            <span onClick={() => onChange(!checked)}>{label}</span>
             <Switch checked={checked} onChange={onChange} />
+            <span onClick={() => onChange(!checked)}>{label}</span>
         </div>
     );
 }

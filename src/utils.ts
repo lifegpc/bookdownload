@@ -70,3 +70,64 @@ export async function loadConfig<T>(key: string, defaultValue: T): Promise<T> {
     }
     return r[key];
 }
+
+/**
+ * Compress data using CompressionStream API. The result is a Uint8Array with the first 4 bytes representing the original data length (little-endian), followed by the compressed data.
+ */
+export async function compress(data: BufferSource, method: CompressionFormat = 'deflate'): Promise<Uint8Array<ArrayBuffer>> {
+    if (typeof CompressionStream === 'undefined') {
+        throw new Error('CompressionStream is not supported in this browser');
+    }
+    const stream = new CompressionStream(method);
+    const writer = stream.writable.getWriter();
+    const dataLength = data.byteLength;
+    writer.write(data);
+    writer.close();
+    const reader = stream.readable.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalLength = 0;
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+            break;
+        }
+        chunks.push(value);
+        totalLength += value.length;
+    }
+    const result = new Uint8Array(totalLength + 4);
+    const view = new DataView(result.buffer);
+    view.setUint32(0, dataLength, true);
+    let offset = 4;
+    for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.length;
+    }
+    return result;
+}
+
+/**
+ * Decompress data using DecompressionStream API. The input should be a Uint8Array where the first 4 bytes represent the original data length (little-endian), followed by the compressed data. The output is a Uint8Array containing the decompressed data.
+ */
+export async function decompress(data: BufferSource, method: CompressionFormat = 'deflate'): Promise<Uint8Array<ArrayBuffer>> {
+    if (typeof DecompressionStream === 'undefined') {
+        throw new Error('DecompressionStream is not supported in this browser');
+    }
+    const stream = new DecompressionStream(method);
+    const view = new DataView(data instanceof ArrayBuffer ? data : data.buffer);
+    const originalLength = view.getUint32(0, true);
+    const writer = stream.writable.getWriter();
+    writer.write(view.buffer.slice(4));
+    writer.close();
+    const reader = stream.readable.getReader();
+    const result = new Uint8Array(originalLength);
+    let offset = 0;
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+            break;
+        }
+        result.set(value, offset);
+        offset += value.length;
+    }
+    return result;
+}

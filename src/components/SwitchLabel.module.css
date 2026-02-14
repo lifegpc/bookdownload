@@ -1,3 +1,4 @@
 .switch-label > span {
     cursor: pointer;
+    margin-left: 4px;
 }
