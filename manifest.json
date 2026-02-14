@@ -30,6 +30,17 @@
                 "dist/qdchapter.js"
             ],
             "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "https://*.qidian.com/*",
+                "http://*.qidian.com/*"
+            ],
+            "js": [
+                "inject/qd.js"
+            ],
+            "run_at": "document_start",
+            "world": "MAIN"
         }
     ],
     "options_ui": { 

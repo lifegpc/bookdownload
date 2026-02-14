@@ -12,6 +12,13 @@ export type DiscriminatedUnion<
 export type QdChapterInfo = {
     chapterInfo: QdTypes.ChapterInfo;
     bookInfo: QdTypes.BookInfo;
+    bookId: number;
+    /**Chapter ID */
+    id: number;
+    /**Decrypted contents of the chapter. May not obtained if chapter is a free chapter */
+    contents?: string[];
+    /**Timestamp of the chapter */
+    time: number;
 }
 
 export type SendMessageMap = {

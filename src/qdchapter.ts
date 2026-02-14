@@ -19,6 +19,15 @@ function load() {
     }
 }
 
+function getContents() {
+    const datas: string[] = [];
+    document.querySelectorAll('span.content-text').forEach(span => {
+        const e = span as HTMLElement;
+        datas.push(e.innerText);
+    })
+    return datas;
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     const m = message as SendMessage;
     try {
@@ -34,13 +43,25 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 sendResponse(msg);
                 return;
             }
+            const chapterInfo = pageData.pageContext.pageProps.pageData.chapterInfo;
+            const bookInfo = pageData.pageContext.pageProps.pageData.bookInfo;
+            let contents: string[] | undefined = undefined;
+            if (chapterInfo.vipStatus !== 0) {
+                contents = getContents();
+                // Clear encrypted content to reduce size.
+                chapterInfo.content = '';
+            }
             const msg: Message = {
                 ok: true,
                 code: 0,
                 body: {
                     type: 'QdChapterInfo',
-                    chapterInfo: pageData.pageContext.pageProps.pageData.chapterInfo,
-                    bookInfo: pageData.pageContext.pageProps.pageData.bookInfo,
+                    chapterInfo,
+                    bookInfo,
+                    bookId: bookInfo.bookId,
+                    id: chapterInfo.chapterId,
+                    contents,
+                    time: Date.now(),
                 },
                 for: m.type,
             };

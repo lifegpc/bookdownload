@@ -4,6 +4,7 @@ import os
 NEED_PACKED = [
     'dist',
     'ico',
+    'inject',
     'manifest.json',
     'LICENSE',
 ]

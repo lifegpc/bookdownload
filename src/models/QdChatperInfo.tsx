@@ -1,16 +1,17 @@
 import React from 'react';
 import { Descriptions, Card, Typography, Tag, Space, Button } from 'antd';
-import type { BookInfo, ChapterInfo } from '../qdtypes';
+import type { QdChapterInfo } from '../types';
 import { get_chapter_content, saveAsFile } from '../utils';
+import { createDb } from '../db/interfaces';
 
 const { Title, Text, Paragraph } = Typography;
 
 interface QdChapterInfoProps {
-    bookInfo: BookInfo;
-    chapterInfo: ChapterInfo;
+    info: QdChapterInfo;
 }
 
-export default function QdChapterInfo({ bookInfo, chapterInfo }: QdChapterInfoProps) {
+export default function QdChapterInfo({ info }: QdChapterInfoProps) {
+    const { chapterInfo, bookInfo, contents } = info;
     // 格式化更新时间
     const formatTime = (timestamp: number) => {
         return new Date(timestamp).toLocaleString('zh-CN');
@@ -34,7 +35,7 @@ export default function QdChapterInfo({ bookInfo, chapterInfo }: QdChapterInfoPr
         return <Tag color={statusMap[status] || 'default'}>{status}</Tag>;
     };
 
-    const chapters = get_chapter_content(chapterInfo.content);
+    const chapters = contents ?? get_chapter_content(chapterInfo.content);
 
     function saveAsTxt() {
         const chapterName = chapterInfo.chapterName.replace(/[\/\\?%*:|"<>]/g, '_');
@@ -42,6 +43,13 @@ export default function QdChapterInfo({ bookInfo, chapterInfo }: QdChapterInfoPr
         const filename = `${bookName} - ${chapterName}.txt`;
         const content = `章节名: ${chapterInfo.chapterName}\n更新时间：${chapterInfo.updateTime}\n字数: ${chapterInfo.wordsCount.toLocaleString()} 字\n\n` + chapters.join('\n');
         saveAsFile(filename, content);
+    }
+
+    async function saveToDb() {
+        const db = await createDb();
+        await db.init();
+        await db.saveQdChapter(info);
+        db.close();
     }
 
     return (
@@ -73,6 +81,7 @@ export default function QdChapterInfo({ bookInfo, chapterInfo }: QdChapterInfoPr
             {/* 操作区域*/}
             <Card title="操作" size="small">
                 <Button type="primary" onClick={saveAsTxt}>保存为文本文件</Button>
+                <Button onClick={saveToDb} style={{ marginLeft: 8 }}>保存到数据库</Button>
             </Card>
 
             {/* 章节导航信息 */}

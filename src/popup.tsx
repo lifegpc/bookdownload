@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import type { Message } from "./types";
+import type { Message, QdChapterInfo } from "./types";
 import { getCurrentTab, parseUrlParams, sendMessageToTab } from "./utils";
 import * as styles from "./popup.module.css";
 import { Spin, Result } from "antd";
-import QdChapterInfo from "./models/QdChatperInfo";
+import QdChapterInfoModel from "./models/QdChatperInfo";
 
 function PopupBody() {
     const [result, setResult] = useState<Message | null>(null);
@@ -58,8 +58,10 @@ function PopupBody() {
     if (result) {
         console.log(result);
         if (result.ok && result.body?.type === 'QdChapterInfo') {
-            const { bookInfo, chapterInfo } = result.body;
-            return <QdChapterInfo bookInfo={bookInfo} chapterInfo={chapterInfo} />;
+            const body: QdChapterInfo = result.body;
+            /**@ts-ignore*/
+            delete body.type;
+            return <QdChapterInfoModel info={body} />;
         }
         return <Result status="error" title="错误" subTitle={result.msg || '未知错误'} />;
     }
