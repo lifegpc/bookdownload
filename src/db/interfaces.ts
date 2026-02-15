@@ -1,5 +1,6 @@
 import { DbConfig, DbType } from "../config";
 import { IndexedDb } from "./indexedDb";
+import { PocketBaseDb } from "./pocketBase";
 import type { QdChapterInfo } from "../types";
 
 export interface Db {
@@ -17,8 +18,11 @@ export async function createDb(): Promise<Db> {
     await config.init();
     switch (config.DbType) {
         case DbType.IndexedDb:
-            const db = new IndexedDb(config.IndexedDb);
-            return db;
+            const db1 = new IndexedDb(config.IndexedDb);
+            return db1;
+        case DbType.PocketBase:
+            const db2 = new PocketBaseDb(config.PocketBase);
+            return db2;
         default:
             throw new Error('Unsupported database type');
     }

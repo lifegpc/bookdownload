@@ -1,9 +1,12 @@
-import { FloatButton, Affix, Button, Space, Select, Input } from "antd";
+import { FloatButton, Affix, Button, Space, Select, Input, Typography, Alert } from "antd";
 import { SaveTwoTone, SaveOutlined, SyncOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { DbConfig, DbType, IndexedDbConfig } from "../config";
+import { DbConfig, DbType, IndexedDbConfig, PocketBaseConfig } from "../config";
 import AlertWarn from "../components/AlertWarn";
 import SwitchLabel from "../components/SwitchLabel";
+import PocketBase from "pocketbase";
+
+const { Text } = Typography;
 
 function IndexedDbSettings({config}: { config: IndexedDbConfig }) {
     const [compress, setCompress] = useState(false);
@@ -17,6 +20,68 @@ function IndexedDbSettings({config}: { config: IndexedDbConfig }) {
     return (<>
         <SwitchLabel label="启用数据压缩" checked={compress} onChange={handleCompressChange} />
     </>)
+}
+
+async function testPocketBaseConnection(config: PocketBaseConfig) {
+    const client = new PocketBase(config.url);
+    const authData = await client.collection('_superusers').authWithPassword(config.username, config.password);
+    return client.authStore.isValid;
+}
+
+function PocketBaseSettings({config}: { config: PocketBaseConfig }) {
+    const [url, setUrl] = useState('http://localhost:8090');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [prefix, setPrefix] = useState('');
+    const [testing, setTesting] = useState(false);
+    const [testResult, setTestResult] = useState<string | null>(null);
+    useEffect(() => {
+        setUrl(config.url);
+        setUsername(config.username);
+        setPassword(config.password);
+        setPrefix(config.prefix);
+    }, [config]);
+    async function handleTestConnection() {
+        setTesting(true);
+        setTestResult(null);
+        try {
+            const result = await testPocketBaseConnection(config);
+            setTestResult(result ? "连接成功！" : "连接失败！");
+        } catch (e) {
+            setTestResult(e instanceof Error ? e.message : "未知错误");
+        } finally {
+            setTesting(false);
+        }
+    }
+    function handleUrlChange(value: string) {
+        setUrl(value);
+        config.url = value;
+    }
+    function handleUsernameChange(value: string) {
+        setUsername(value);
+        config.username = value;
+    }
+    function handlePasswordChange(value: string) {
+        setPassword(value);
+        config.password = value;
+    }
+    function handlePrefixChange(value: string) {
+        setPrefix(value);
+        config.prefix = value;
+    }
+    return (<Space orientation="vertical">
+        <Text>服务器地址</Text>
+        <Input placeholder="服务器地址" value={url} onChange={e => handleUrlChange(e.target.value)} allowClear />
+        <Alert title="用户帐户需要是超级用户(superuser)才能正常工作" type="info" />
+        <Text>用户名</Text>
+        <Input placeholder="用户名" value={username} onChange={e => handleUsernameChange(e.target.value)} allowClear />
+        <Text>密码</Text>
+        <Input.Password placeholder="密码" value={password} onChange={e => handlePasswordChange(e.target.value)} allowClear />
+        <Text>前缀（可选）</Text>
+        <Input placeholder="前缀（可选）" value={prefix} onChange={e => handlePrefixChange(e.target.value)} allowClear />
+        <Button onClick={handleTestConnection} disabled={testing}>{testing ? "测试中..." : "测试连接"}</Button>
+        {testResult && <div>{testResult}</div>}
+    </Space>)
 }
 
 export default function DbSettings() {
@@ -56,13 +121,19 @@ export default function DbSettings() {
             </Affix>
             <br />
             <Space orientation="vertical">
+                <Text>数据库类型</Text>
                 <Select value={dbType} onChange={value => setDbType(value)} style={{ width: 200 }} options={[
                     {
                         label: "IndexedDb",
                         value: DbType.IndexedDb,
                     },
+                    {
+                        label: "PocketBase",
+                        value: DbType.PocketBase,
+                    },
                 ]} />
                 {dbType === DbType.IndexedDb && <IndexedDbSettings config={indexedDbConfig} />}
+                {dbType === DbType.PocketBase && <PocketBaseSettings config={config.PocketBase} />}
             </Space>
             <FloatButton icon={<SaveTwoTone />} tooltip="保存设置" onClick={saveSettings} />
             {alert && <AlertWarn title={alert.title} content={alert.content} onClose={() => setAlert(null)} />}

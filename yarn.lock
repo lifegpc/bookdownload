@@ -796,6 +796,11 @@ json2mq@^0.2.0:
   dependencies:
     string-convert "^0.2.0"
 
+pocketbase@^0.26.8:
+  version "0.26.8"
+  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.26.8.tgz#1b800b5f69f2ab08c3e3da45fce25f45c6724c45"
+  integrity sha512-aQ/ewvS7ncvAE8wxoW10iAZu6ElgbeFpBhKPnCfvRovNzm2gW8u/sQNPGN6vNgVEagz44kK//C61oKjfa+7Low==
+
 react-dom@^19.2.4:
   version "19.2.4"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.2.4.tgz#6fac6bd96f7db477d966c7ec17c1a2b1ad8e6591"

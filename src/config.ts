@@ -36,13 +36,22 @@ type IndexedDbConfigData = {
     compress?: boolean;
 }
 
+type PocketBaseConfigData = {
+    url?: string;
+    username?: string;
+    password?: string;
+    prefix?: string;
+}
+
 export enum DbType {
     IndexedDb,
+    PocketBase,
 }
 
 type DbConfigData = {
     IndexedDb?: IndexedDbConfigData;
     DbType?: DbType;
+    PocketBase?: PocketBaseConfigData;
 }
 
 export class IndexedDbConfig {
@@ -55,6 +64,37 @@ export class IndexedDbConfig {
     }
     set compress(value: boolean) {
         this.config.compress = value;
+    }
+}
+
+export class PocketBaseConfig {
+    config: PocketBaseConfigData;
+    constructor(config: PocketBaseConfigData) {
+        this.config = config;
+    }
+    get url(): string {
+        return this.config.url ?? 'http://localhost:8090';
+    }
+    set url(value: string) {
+        this.config.url = value;
+    }
+    get username(): string {
+        return this.config.username ?? '';
+    }
+    set username(value: string) {
+        this.config.username = value;
+    }
+    get password(): string {
+        return this.config.password ?? '';
+    }
+    set password(value: string) {
+        this.config.password = value;
+    }
+    get prefix(): string {
+        return this.config.prefix ?? '';
+    }
+    set prefix(value: string) {
+        this.config.prefix = value;
     }
 }
 
@@ -92,5 +132,14 @@ export class DbConfig {
             throw new Error('Config not initialized');
         }
         this.config.DbType = value;
+    }
+    get PocketBase(): PocketBaseConfig {
+        if (!this.config) {
+            throw new Error('Config not initialized');
+        }
+        if (!this.config.PocketBase) {
+            this.config.PocketBase = {};
+        }
+        return new PocketBaseConfig(this.config.PocketBase);
     }
 }
