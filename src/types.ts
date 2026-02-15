@@ -19,6 +19,7 @@ export type QdChapterInfo = {
     contents?: string[];
     /**Timestamp of the chapter */
     time: number;
+    hash?: string;
 }
 
 export type SendMessageMap = {

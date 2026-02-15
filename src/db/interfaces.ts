@@ -4,6 +4,10 @@ import type { QdChapterInfo } from "../types";
 
 export interface Db {
     init(): Promise<void>;
+    /**
+     * Save chapter info to database.
+     * @param info Chapter info to save. if id, bookId and hash are matched in the database, skip saving.
+     */
     saveQdChapter(info: QdChapterInfo): Promise<void>;
     close(): void;
 }

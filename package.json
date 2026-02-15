@@ -2,6 +2,7 @@
   "name": "bookdownload",
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
+    "@stablelib/sha256": "^2.0.1",
     "@types/chrome": "^0.1.36",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

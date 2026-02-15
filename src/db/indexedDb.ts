@@ -1,6 +1,8 @@
 import { IndexedDbConfig } from "../config";
 import type { QdChapterInfo } from "../types";
 import { compress } from "../utils";
+import { hash_qdchapter_info } from "../utils/qd";
+import type { Db } from "./interfaces";
 
 async function make_storage_persist() {
     const persisted = await navigator.storage.persisted();
@@ -23,14 +25,64 @@ async function save_data<T>(db: IDBDatabase, storeName: string, data: T, key?: I
     });
 }
 
+type QdChapterKey = [number, number, number];
+type QdChapterHashKey = [number, number, string];
+
+async function get_data<T>(db: IDBDatabase, storeName: string, key: IDBValidKey | IDBKeyRange, index?: string): Promise<T | undefined> {
+    return new Promise<T | undefined>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = index ? store.index(index).get(key) : store.get(key);
+        req.onsuccess = () => {
+            resolve(req.result);
+        }
+        req.onerror = () => {
+            reject(req.error);
+        }
+    });
+}
+
+type GetAllOptions = {
+    index?: string;
+    count?: number;
+}
+
+async function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKey | IDBKeyRange, options?: GetAllOptions): Promise<T[]> {
+    return new Promise<T[]>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = options?.index ? store.index(options.index).getAll(key, options.count) : store.getAll(key, options?.count);
+        req.onsuccess = () => {
+            resolve(req.result);
+        }
+        req.onerror = () => {
+            reject(req.error);
+        }
+    });
+}
+
+async function get_keys<K extends IDBValidKey = IDBValidKey>(db: IDBDatabase, storeName: string, query?: IDBValidKey | IDBKeyRange, options?: GetAllOptions): Promise<K[]> {
+    return new Promise<K[]>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = options?.index ? store.index(options.index).getAllKeys(query, options.count) : store.getAllKeys(query, options?.count);
+        req.onsuccess = () => {
+            resolve(req.result as K[]);
+        }
+        req.onerror = () => {
+            reject(req.error);
+        }
+    });
+}
 type CompressedQdChapterInfo = {
     compressed: Uint8Array;
     bookId: number;
     id: number;
     time: number;
+    hash: string;
 }
 
-export class IndexedDb {
+export class IndexedDb implements Db {
     compress: boolean;
     _qddb?: IDBDatabase;
     constructor(cfg: IndexedDbConfig) {
@@ -54,6 +106,7 @@ export class IndexedDb {
                     const chapters = db.createObjectStore('chapters', { keyPath: ['id', 'bookId', 'time'] });
                     chapters.createIndex('bookId', 'bookId');
                     chapters.createIndex('id', 'id');
+                    chapters.createIndex('hash', ['id', 'bookId', 'hash']);
                 }
             }
             dbreq.onerror = () => {
@@ -70,7 +123,15 @@ export class IndexedDb {
         await this.init_qddb();
     }
     async saveQdChapter(info: QdChapterInfo) {
+        const hash = hash_qdchapter_info(info);
+        const key: QdChapterHashKey = [info.id, info.bookId, hash];
+        const existed = await get_data<CompressedQdChapterInfo | QdChapterInfo>(this.qddb, 'chapters', key, 'hash');
+        if (existed) {
+            console.log(`Chapter ${info.id} of book ${info.bookId} already exists in database, skipping`);
+            return;
+        }
         if (this.compress) {
+            info.hash = undefined;
             const data = JSON.stringify(info);
             const encoded = new TextEncoder().encode(data);
             const compressed = await compress(encoded);
@@ -79,9 +140,11 @@ export class IndexedDb {
                 bookId: info.bookId,
                 id: info.id,
                 time: info.time,
+                hash,
             }
             await save_data(this.qddb, 'chapters', compressedInfo);
         } else {
+            info.hash = hash;
             await save_data(this.qddb, 'chapters', info);
         }
     }
