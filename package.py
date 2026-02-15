@@ -1,5 +1,6 @@
 from zipfile import ZipFile, ZIP_DEFLATED
 import os
+from crx3 import creator
 
 NEED_PACKED = [
     'dist',
@@ -10,7 +11,7 @@ NEED_PACKED = [
 ]
 
 def pack():
-    with ZipFile('bookdownload.crx', 'w', compression=ZIP_DEFLATED, compresslevel=9) as zip:
+    with ZipFile('bookdownload.zip', 'w', compression=ZIP_DEFLATED, compresslevel=9) as zip:
         for item in NEED_PACKED:
             if not os.path.exists(item):
                 print(f'Warning: {item} does not exist, skipping.')
@@ -21,6 +22,8 @@ def pack():
                         zip.write(os.path.join(foldername, filename))
             else:
                 zip.write(item)
+    creator.create_crx_file('bookdownload.zip', 'bookdownload.pem', './bookdownload.crx')
+    os.remove('bookdownload.zip')
 
 
 if __name__ == '__main__':
