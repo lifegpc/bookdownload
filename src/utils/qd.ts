@@ -1,6 +1,6 @@
 import { SHA256 } from "@stablelib/sha256";
 import type { QdChapterInfo } from "../types";
-import { get_chapter_content, ToHex } from "../utils";
+import { get_chapter_content, toHex } from "../utils";
 
 export function hash_qdchapter_info(info: QdChapterInfo): string {
     const encoder = new TextEncoder();
@@ -25,5 +25,5 @@ export function hash_qdchapter_info(info: QdChapterInfo): string {
         }
     }
     const hash = h.digest();
-    return ToHex(hash);
+    return toHex(hash);
 }

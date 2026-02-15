@@ -132,6 +132,9 @@ export async function decompress(data: BufferSource, method: CompressionFormat =
     return result;
 }
 
-export function ToHex(bytes: Uint8Array): string {
+export function toHex(bytes: Uint8Array): string {
     return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+/**@ts-ignore */
+export const isServiceWorker = typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope;

@@ -1,5 +1,7 @@
 import type { PageContext } from './qdtypes';
 import type { Message, SendMessage } from './types';
+import { QdConfig } from './config';
+import { get_chapter_content } from './utils';
 
 function getPageData(): PageContext | undefined {
     let data = document.getElementById('vite-plugin-ssr_pageContext')?.innerHTML;
@@ -11,11 +13,43 @@ function getPageData(): PageContext | undefined {
 
 let loaded = false;
 
-function load() {
+async function load() {
     const pageData = getPageData();
     if (!pageData) {
         console.log(`No page data found on ${window.location.href}`);
         return;
+    }
+    const cfg = new QdConfig();
+    await cfg.init();
+    if (!cfg.AutoSaveChapter) {
+        return;
+    }
+    const chapterInfo = pageData.pageContext.pageProps.pageData.chapterInfo;
+    const bookInfo = pageData.pageContext.pageProps.pageData.bookInfo;
+    let contents: string[] | undefined = undefined;
+    if (chapterInfo.vipStatus !== 0) {
+        if (!chapterInfo.isBuy) return;
+        if (chapterInfo.cES !== 0) return;
+        contents = getContents();
+    } else {
+        contents = get_chapter_content(chapterInfo.content);
+    }
+    // Clear encrypted content to reduce size.
+    chapterInfo.content = '';
+    const msg: SendMessage = {
+        type: 'SaveQdChapterInfo',
+        info: {
+            chapterInfo,
+            bookInfo,
+            bookId: bookInfo.bookId,
+            id: chapterInfo.chapterId,
+            contents,
+            time: Date.now(),
+        },
+    }
+    const re: Message = await chrome.runtime.sendMessage(msg);
+    if (!re.ok) {
+        console.error(`Failed to save chapter info: ${re.msg}`);
     }
 }
 
@@ -48,9 +82,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             let contents: string[] | undefined = undefined;
             if (chapterInfo.vipStatus !== 0) {
                 contents = getContents();
-                // Clear encrypted content to reduce size.
-                chapterInfo.content = '';
+            } else {
+                contents = get_chapter_content(chapterInfo.content);
             }
+            // Clear encrypted content to reduce size.
+            chapterInfo.content = '';
             const msg: Message = {
                 ok: true,
                 code: 0,

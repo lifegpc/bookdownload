@@ -1,6 +1,6 @@
 import { IndexedDbConfig } from "../config";
 import type { QdChapterInfo } from "../types";
-import { compress } from "../utils";
+import { compress, isServiceWorker } from "../utils";
 import { hash_qdchapter_info } from "../utils/qd";
 import type { Db } from "./interfaces";
 
@@ -119,7 +119,7 @@ export class IndexedDb implements Db {
         });
     }
     async init() {
-        make_storage_persist();
+        if (!isServiceWorker) make_storage_persist();
         await this.init_qddb();
     }
     async saveQdChapter(info: QdChapterInfo) {

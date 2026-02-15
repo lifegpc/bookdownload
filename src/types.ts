@@ -24,6 +24,9 @@ export type QdChapterInfo = {
 
 export type SendMessageMap = {
     GetQdChapterInfo: {};
+    SaveQdChapterInfo: {
+        info: QdChapterInfo;
+    };
 }
 
 export type SendMessage = DiscriminatedUnion<"type", SendMessageMap>;

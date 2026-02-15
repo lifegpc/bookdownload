@@ -57,10 +57,13 @@ async function build(name, is_content_script = true) {
     return result;
 }
 
-async function buildTsx(names) {
+async function buildTsx(names, tsnames) {
     const entryPoints = [];
     for (const name of names) {
         entryPoints.push(`src/${name}.tsx`);
+    }
+    for (const name of tsnames) {
+        entryPoints.push(`src/${name}.ts`);
     }
     const result = await esbuild.build({
         entryPoints: entryPoints,
@@ -88,4 +91,4 @@ async function buildTsx(names) {
 fs.rmSync('dist', { recursive: true, force: true });
 fs.mkdirSync('dist', { recursive: true });
 await build('qdchapter');
-await buildTsx(['popup', 'settings']);
+await buildTsx(['popup', 'settings'], ['background']);
