@@ -41,3 +41,19 @@ chrome.runtime.onMessage.addListener((message: SendMessage, sender, sendResponse
         return true; // Indicates that the response will be sent asynchronously
     }
 });
+
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: 'manage',
+        title: '管理数据库',
+        contexts: ['action'],
+    });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === 'manage') {
+        chrome.tabs.create({
+            url: chrome.runtime.getURL('dist/manage.html'),
+        })
+    }
+});
