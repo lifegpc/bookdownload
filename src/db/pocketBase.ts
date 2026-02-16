@@ -91,15 +91,16 @@ export class PocketBaseDb implements Db {
         }
     }
     async createCollection(name: string, fields: Record<string, unknown>[], indexes: string[]) {
+        const nindexes = indexes.map(i => i.replaceAll('{name}', `${this.cfg.prefix}${name}`));
         await this.client.collections.create({
             name: `${this.cfg.prefix}${name}`,
             type: 'base',
             fields: fields,
-            indexes: indexes,
+            indexes: nindexes,
         });
     }
     async updateCollection(name: string, fields: Record<string, unknown>[], indexes: string[]) {
-        const nidexes = indexes.map(i => i.replace('{name}', `${this.cfg.prefix}${name}`));
+        const nidexes = indexes.map(i => i.replaceAll('{name}', `${this.cfg.prefix}${name}`));
         await this.client.collections.update(`${this.cfg.prefix}${name}`, {
             fields: fields,
             indexes: nidexes,
@@ -119,7 +120,7 @@ export class PocketBaseDb implements Db {
             }
         }
         for (const index of indexes) {
-            const tindex = index.replace('{name}', col.name);
+            const tindex = index.replaceAll('{name}', col.name);
             if (!col.indexes.includes(tindex)) {
                 return false;
             }

@@ -29,8 +29,14 @@ async function load() {
     const bookInfo = pageData.pageContext.pageProps.pageData.bookInfo;
     let contents: string[] | undefined = undefined;
     if (chapterInfo.vipStatus !== 0) {
-        if (!chapterInfo.isBuy) return;
-        if (chapterInfo.cES !== 0) return;
+        if (!chapterInfo.isBuy) {
+            Notification(`章节《${chapterInfo.chapterName}》未购买，跳过保存`, 'info');
+            return;
+        }
+        if (chapterInfo.cES !== 0) {
+            Notification(`章节《${chapterInfo.chapterName}》有特殊加密，无法保存`, 'info');
+            return;
+        }
         contents = getContents();
     } else {
         contents = get_chapter_content(chapterInfo.content);

@@ -6,7 +6,7 @@ export default function Notification(message: string, type: 'success' | 'error' 
     const colors = {
         success: { bg: '#4caf50', icon: '✓' },
         error: { bg: '#f44336', icon: '✕' },
-        info: { bg: '#2196f3', icon: 'ℹ' }
+        info: { bg: '#2196f3', icon: 'i' }
     };
     
     const color = colors[type];
