@@ -1,4 +1,3 @@
-import React from 'react';
 import { Descriptions, Card, Typography, Tag, Space, Button } from 'antd';
 import type { QdChapterInfo } from '../types';
 import { get_chapter_content, saveAsFile } from '../utils';

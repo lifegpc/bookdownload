@@ -1,7 +1,7 @@
 import { DbConfig, DbType } from "../config";
 import { IndexedDb } from "./indexedDb";
 import { PocketBaseDb } from "./pocketBase";
-import type { QdChapterInfo } from "../types";
+import type { QdChapterInfo, QdBookInfo } from "../types";
 
 export interface Db {
     init(): Promise<void>;
@@ -10,6 +10,11 @@ export interface Db {
      * @param info Chapter info to save. if id, bookId and hash are matched in the database, skip saving.
      */
     saveQdChapter(info: QdChapterInfo): Promise<void>;
+    /**
+     * Save book info to database.
+     * @param info Book info to save. if id is matched in the database, update the existing record.
+     */
+    saveQdBook(info: QdBookInfo): Promise<void>;
     close(): void;
 }
 
@@ -18,11 +23,9 @@ export async function createDb(): Promise<Db> {
     await config.init();
     switch (config.DbType) {
         case DbType.IndexedDb:
-            const db1 = new IndexedDb(config.IndexedDb);
-            return db1;
+            return new IndexedDb(config.IndexedDb);
         case DbType.PocketBase:
-            const db2 = new PocketBaseDb(config.PocketBase);
-            return db2;
+            return new PocketBaseDb(config.PocketBase);
         default:
             throw new Error('Unsupported database type');
     }

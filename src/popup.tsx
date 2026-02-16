@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import type { Message, QdChapterInfo } from "./types";
+import type { Message, QdChapterInfo, QdBookInfo } from "./types";
 import { getCurrentTab, parseUrlParams, sendMessageToTab } from "./utils";
 import * as styles from "./popup.module.css";
 import { Spin, Result } from "antd";
 import QdChapterInfoModel from "./models/QdChatperInfo";
+import QdBookInfoModel from "./models/QdBookInfo";
 
 function PopupBody() {
     const [result, setResult] = useState<Message | null>(null);
@@ -70,7 +71,10 @@ function PopupBody() {
             return <QdChapterInfoModel info={body} />;
         }
         if (result.ok && result.body?.type === 'QdBookInfo') {
-            return <Result status="success" title={result.body.bookName} subTitle={`Book ID: ${result.body.id}`} />;
+            const body: QdBookInfo = result.body;
+            /**@ts-ignore*/
+            delete body.type;
+            return <QdBookInfoModel info={body} />;
         }
         return <Result status="error" title="错误" subTitle={result.msg || '未知错误'} />;
     }

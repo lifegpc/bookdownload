@@ -192,9 +192,16 @@ export type BookGData = {
     }
 }
 
-export type Volume = {
+export type Chapter = {
     name: string;
     id: number;
+}
+
+export type Volume = {
+    name: string;
+    id: string;
+    isVip: boolean;
+    chapters: Chapter[];
 }
 
 export enum QdBookTagType {

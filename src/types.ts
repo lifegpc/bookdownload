@@ -22,12 +22,14 @@ export type QdChapterInfo = {
     hash?: string;
 }
 
-export type QDBookInfo = {
+export type QdBookInfo = {
     bookInfo: QdTypes.BookGData;
     bookName: string;
     /**Book ID */
     id: number;
     tags: QdTypes.QdBookTag[];
+    intro: string;
+    volumes: QdTypes.Volume[];
 }
 
 export type SendMessageMap = {
@@ -42,7 +44,7 @@ export type SendMessage = DiscriminatedUnion<"type", SendMessageMap>;
 
 export type MessageMap = {
     QdChapterInfo: QdChapterInfo,
-    QdBookInfo: QDBookInfo,
+    QdBookInfo: QdBookInfo,
 };
 
 export type MessageBody = DiscriminatedUnion<"type", MessageMap>;

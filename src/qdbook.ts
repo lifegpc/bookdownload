@@ -1,8 +1,10 @@
-import type { BookGData, QdBookTag } from "./qdtypes";
+import type { BookGData, QdBookTag, Volume } from "./qdtypes";
 import type { SendMessage, Message } from "./types";
 import { QdBookTagType } from "./qdtypes";
 
 let g_data: BookGData | undefined;
+
+export const QD_CHAPTER_URLPATH_REGEX = /^\/chapter\/\d+\/(\d+)\/?$/;
 
 function get_book_name() {
     const bookName = document.getElementById('bookName') as HTMLHeadingElement | null;
@@ -53,6 +55,65 @@ function get_book_tags() {
     return tags;
 }
 
+function get_book_intro() {
+    const intro = document.getElementById('book-intro-detail') as HTMLParagraphElement | null;
+    if (!intro) {
+        throw new Error('Failed to find book intro element');
+    }
+    return intro.innerText.trim();
+}
+
+function get_book_volumes() {
+    const volumes: Volume[] = [];
+    const vols = document.querySelectorAll('div.catalog-volume');
+    for (const vol of vols) {
+        const volInput = vol.querySelector('input.input-vol') as HTMLInputElement | null;
+        if (!volInput) {
+            throw new Error('Failed to find volume input element');
+        }
+        const volId = volInput.id;
+        const volName = vol.querySelector('.volume-name') as HTMLElement | null;
+        if (!volName) {
+            throw new Error('Failed to find volume name element');
+        }
+        const firstNode = volName.firstChild;
+        if (!firstNode) {
+            throw new Error('Volume name element has no child');
+        }
+        if (firstNode.nodeType !== Node.TEXT_NODE) {
+            throw new Error('Volume name element first child is not a text node');
+        }
+        const name = firstNode.textContent?.trim() || '';
+        const vipNode = volName.querySelector('span.vip');
+        const volume: Volume = {
+            name,
+            id: volId,
+            isVip: !!vipNode,
+            chapters: [],
+        }
+        const chs = vol.querySelectorAll('li.chapter-item');
+        for (const ch of chs) {
+            const chName = ch.querySelector('a.chapter-name') as HTMLAnchorElement | null;
+            if (!chName) {
+                throw new Error('Failed to find chapter name element');
+            }
+            const name = chName.innerText.trim();
+            const href = new URL(chName.href);
+            const match = href.pathname.match(QD_CHAPTER_URLPATH_REGEX);
+            if (!match) {
+                throw new Error(`Chapter URL does not match expected pattern: ${chName.href}`);
+            }
+            const chapterId = match[1];
+            volume.chapters.push({
+                name,
+                id: parseInt(chapterId),
+            });
+        }
+        volumes.push(volume);
+    }
+    return volumes;
+}
+
 window.addEventListener('message', (event) => {
     const data = event.data;
     if (data && data['@type'] === 'g_data') {
@@ -85,6 +146,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     bookName,
                     id: g_data.pageJson.bookId,
                     tags: get_book_tags(),
+                    intro: get_book_intro(),
+                    volumes: get_book_volumes(),
                 },
                 for: m.type,
             };

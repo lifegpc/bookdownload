@@ -2,7 +2,7 @@ import type { Db } from "./interfaces";
 import PocketBase from "pocketbase";
 import type { CollectionModel } from "pocketbase";
 import { PocketBaseConfig } from "../config";
-import { QdChapterInfo } from "../types";
+import { QdChapterInfo, QdBookInfo } from "../types";
 import { hash_qdchapter_info } from "../utils/qd";
 
 const QD_CHAPTERS_FIELDS = [
@@ -32,10 +32,31 @@ const QD_CHAPTERS_FIELDS = [
         'required': true,
     }
 ];
+const QD_BOOKS_FIELDS = [
+    {
+        'name': 'bookId',
+        'type': 'number',
+        'required': true,
+    },
+    {
+        'name': 'name',
+        'type': 'text',
+        'required': true,
+    },
+    {
+        'name': 'data',
+        'type': 'json',
+        'required': true,
+    }
+];
 const QD_CHAPTERS_INDEXES = [
-    'CREATE INDEX `idx_cid` ON `{name}` (chapterId)',
-    'CREATE INDEX `idx_bid` ON `{name}` (bookId)',
-    'CREATE INDEX `idx_hash` ON `{name}` (chapterId,bookId,hash)',
+    'CREATE INDEX `idx_{name}_cid` ON `{name}` (chapterId)',
+    'CREATE INDEX `idx_{name}_bid` ON `{name}` (bookId)',
+    'CREATE INDEX `idx_{name}_hash` ON `{name}` (chapterId,bookId,hash)',
+]
+const QD_BOOKS_INDEXES = [
+    'CREATE UNIQUE INDEX `idx_{name}_bid` ON `{name}` (bookId)',
+    'CREATE INDEX `idx_{name}_name` ON `{name}` (name)',
 ]
 
 export class PocketBaseDb implements Db {
@@ -58,6 +79,14 @@ export class PocketBaseDb implements Db {
             const target = collections.find(c => c.name === `${this.cfg.prefix}qd_chapters`)!;
             if (!this.checkCollection(target, QD_CHAPTERS_FIELDS, QD_CHAPTERS_INDEXES)) {
                 await this.updateCollection('qd_chapters', QD_CHAPTERS_FIELDS, QD_CHAPTERS_INDEXES);
+            }
+        }
+        if (!collectionNames.has(`${this.cfg.prefix}qd_books`)) {
+            await this.createCollection('qd_books', QD_BOOKS_FIELDS, QD_BOOKS_INDEXES);
+        } else {
+            const target = collections.find(c => c.name === `${this.cfg.prefix}qd_books`)!;
+            if (!this.checkCollection(target, QD_BOOKS_FIELDS, QD_BOOKS_INDEXES)) {
+                await this.updateCollection('qd_books', QD_BOOKS_FIELDS, QD_BOOKS_INDEXES);
             }
         }
     }
@@ -113,6 +142,28 @@ export class PocketBaseDb implements Db {
             data: info,
         });
         console.log(re);
+    }
+    async saveQdBook(info: QdBookInfo) {
+        const id = await this.getQdBookId(info.id);
+        if (id) {
+            await this.client.collection(`${this.cfg.prefix}qd_books`).update(id, {
+                name: info.bookName,
+                data: info,
+            });
+        } else {
+            await this.client.collection(`${this.cfg.prefix}qd_books`).create({
+                bookId: info.id,
+                name: info.bookName,
+                data: info,
+            });
+        }
+    }
+    async getQdBookId(id: number): Promise<string | null> {
+        const records = await this.client.collection(`${this.cfg.prefix}qd_books`).getList(1, 1, {
+            filter: `bookId = ${id}`,
+            fields: 'id',
+        });
+        return records.totalItems > 0 ? records.items[0].id : null;
     }
     async hasQdChapter(id: number, bookId: number, hash: string) {
         const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {

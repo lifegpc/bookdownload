@@ -1,5 +1,5 @@
 import { IndexedDbConfig } from "../config";
-import type { QdChapterInfo } from "../types";
+import type { QdChapterInfo, QdBookInfo } from "../types";
 import { compress, isServiceWorker } from "../utils";
 import { hash_qdchapter_info } from "../utils/qd";
 import type { Db } from "./interfaces";
@@ -147,6 +147,9 @@ export class IndexedDb implements Db {
             info.hash = hash;
             await save_data(this.qddb, 'chapters', info);
         }
+    }
+    async saveQdBook(info: QdBookInfo) {
+        await save_data(this.qddb, 'books', info);
     }
     close() {
         this.qddb.close();
