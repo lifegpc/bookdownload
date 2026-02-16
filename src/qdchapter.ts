@@ -2,6 +2,7 @@ import type { PageContext } from './qdtypes';
 import type { Message, SendMessage } from './types';
 import { QdConfig } from './config';
 import { get_chapter_content } from './utils';
+import Notification from './components/Notifiction';
 
 function getPageData(): PageContext | undefined {
     let data = document.getElementById('vite-plugin-ssr_pageContext')?.innerHTML;
@@ -50,6 +51,9 @@ async function load() {
     const re: Message = await chrome.runtime.sendMessage(msg);
     if (!re.ok) {
         console.error(`Failed to save chapter info: ${re.msg}`);
+        Notification(`章节《${chapterInfo.chapterName}》自动保存失败: ${re.msg}`, 'error');
+    } else {
+        Notification(`章节《${chapterInfo.chapterName}》已自动保存`, 'success');
     }
 }
 
