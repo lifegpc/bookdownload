@@ -1,0 +1,22 @@
+.c .img {
+    width: 180px;
+    height: auto;
+}
+
+.c .info {
+    min-width: 300px;
+}
+
+.c .name {
+    margin: 0 8px;
+    text-align: center;
+}
+
+.c .author {
+    margin: 0 8px;
+    text-align: right;
+}
+
+.c .author > span {
+    font-weight: bold;
+}

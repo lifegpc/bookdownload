@@ -1,8 +1,9 @@
 import { Breadcrumb, Result, Button, Skeleton } from "antd";
-import { NavLink, useParams } from "react-router";
+import { NavLink, Outlet, useParams } from "react-router";
 import { useDb } from "../dbProvider";
 import type { QdBookInfo } from "../../types";
 import { useEffect, useState } from "react";
+import { BookInfoContext } from "./BookInfoProvider";
 
 export default function Book() {
     const db = useDb();
@@ -44,6 +45,9 @@ export default function Book() {
                 title="数据加载失败"
                 subTitle={err}
                 extra={<Button type="primary" onClick={() => { setErr(null); handle(); }}>重试</Button>} />}
+            {book && (<BookInfoContext.Provider value={book}>
+                <Outlet />
+            </BookInfoContext.Provider>)}
         </>
     );
 }

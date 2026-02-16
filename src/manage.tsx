@@ -8,6 +8,7 @@ import QdBooks from "./manage/qd/Books";
 import { Result } from 'antd';
 import { DbContext } from "./manage/dbProvider";
 import QdBook from "./manage/qd/Book";
+import QdBookIndex from "./manage/qd/BookIndex";
 
 const router = createHashRouter([
     {
@@ -21,6 +22,12 @@ const router = createHashRouter([
     {
         path: "/qd/book/:id",
         element: <QdBook />,
+        children: [
+            {
+                index: true,
+                element: <QdBookIndex />
+            }
+        ],
     }
 ]);
 
