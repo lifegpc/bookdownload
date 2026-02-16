@@ -1,7 +1,7 @@
 import { DbConfig, DbType } from "../config";
 import { IndexedDb } from "./indexedDb";
 import { PocketBaseDb } from "./pocketBase";
-import type { QdChapterInfo, QdBookInfo } from "../types";
+import type { QdChapterInfo, QdBookInfo, PagedData } from "../types";
 
 export interface Db {
     init(): Promise<void>;
@@ -15,6 +15,8 @@ export interface Db {
      * @param info Book info to save. if id is matched in the database, update the existing record.
      */
     saveQdBook(info: QdBookInfo): Promise<void>;
+    getQdBook(id: number): Promise<QdBookInfo | undefined>;
+    getQdBooks(page: number, pageSize: number): Promise<PagedData<QdBookInfo>>;
     close(): void;
 }
 

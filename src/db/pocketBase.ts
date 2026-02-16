@@ -2,7 +2,7 @@ import type { Db } from "./interfaces";
 import PocketBase from "pocketbase";
 import type { CollectionModel } from "pocketbase";
 import { PocketBaseConfig } from "../config";
-import { QdChapterInfo, QdBookInfo } from "../types";
+import { QdChapterInfo, QdBookInfo, PagedData } from "../types";
 import { hash_qdchapter_info } from "../utils/qd";
 
 const QD_CHAPTERS_FIELDS = [
@@ -172,6 +172,26 @@ export class PocketBaseDb implements Db {
             fields: 'id',
         });
         return records.totalItems > 0;
+    }
+    async getQdBooks(page: number, pageSize: number): Promise<PagedData<QdBookInfo>> {
+        const records = await this.client.collection(`${this.cfg.prefix}qd_books`).getList(page, pageSize, {
+            fields: 'data',
+            sort: 'bookId',
+        });
+        return {
+            total: records.totalItems,
+            page,
+            totalPages: records.totalPages,
+            pageSize,
+            items: records.items.map(item => item.data),
+        };
+    }
+    async getQdBook(id: number): Promise<QdBookInfo | undefined> {
+        const records = await this.client.collection(`${this.cfg.prefix}qd_books`).getList(1, 1, {
+            filter: `bookId = ${id}`,
+            fields: 'data',
+        });
+        return records.totalItems > 0 ? records.items[0].data : undefined;
     }
     close(): void {
         this.client.cancelAllRequests();

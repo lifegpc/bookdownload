@@ -1,0 +1,20 @@
+.books-card {
+    margin: 8px;
+    max-width: 400px;
+    min-width: 350px;
+    cursor: pointer;
+}
+
+.books-card .name {
+    margin: 0 8px;
+    text-align: center;
+}
+
+.books-card .author {
+    margin: 0 8px;
+    text-align: right;
+}
+
+.books-card .intro {
+    margin-left: 8px;
+}

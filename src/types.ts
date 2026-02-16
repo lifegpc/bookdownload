@@ -73,3 +73,14 @@ export type UrlParamsMap = {
 }
 
 export type UrlParams = DiscriminatedUnion<"page", UrlParamsMap>;
+
+export type PagedData<T> = {
+    /**Total number of items */
+    total: number;
+    /**Start at 1*/
+    page: number;
+    /**Total number of pages */
+    totalPages: number;
+    pageSize: number;
+    items: T[];
+}

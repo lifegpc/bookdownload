@@ -1,5 +1,5 @@
 import { IndexedDbConfig } from "../config";
-import type { QdChapterInfo, QdBookInfo } from "../types";
+import type { QdChapterInfo, QdBookInfo, PagedData } from "../types";
 import { compress, isServiceWorker } from "../utils";
 import { hash_qdchapter_info } from "../utils/qd";
 import type { Db } from "./interfaces";
@@ -74,6 +74,76 @@ async function get_keys<K extends IDBValidKey = IDBValidKey>(db: IDBDatabase, st
         }
     });
 }
+
+async function get_count(db: IDBDatabase, storeName: string, key?: IDBValidKey | IDBKeyRange, index?: string): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = index ? store.index(index).count(key) : store.count(key);
+        req.onsuccess = () => {
+            resolve(req.result);
+        }
+        req.onerror = () => {
+            reject(req.error);
+        }
+    });
+}
+
+async function get_paged_data<T>(db: IDBDatabase, storeName: string, page: number, pageSize: number, key?: IDBValidKey | IDBKeyRange, index?: string): Promise<PagedData<T>> {
+    const count = await get_count(db, storeName, key, index);
+    const offset = (page - 1) * pageSize;
+    const totalPages = Math.ceil(count / pageSize);
+    if (page > totalPages || page < 1 || count === 0) {
+        return {
+            total: count,
+            page,
+            totalPages,
+            pageSize,
+            items: [],
+        };
+    }
+    return new Promise<PagedData<T>>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = index ? store.index(index).openCursor(key) : store.openCursor(key);
+        const items: T[] = [];
+        let advanced = false;
+        req.onsuccess = () => {
+            const cursor = req.result;
+            if (cursor) {
+                if (!advanced && offset > 0) {
+                    cursor.advance(offset);
+                    advanced = true;
+                } else {
+                    items.push(cursor.value);
+                }
+                if (items.length < pageSize) {
+                    cursor.continue();
+                } else {
+                    resolve({
+                        total: count,
+                        page,
+                        totalPages,
+                        pageSize,
+                        items,
+                    });
+                }
+            } else {
+                resolve({
+                    total: count,
+                    page,
+                    totalPages,
+                    pageSize,
+                    items,
+                });
+            }
+        }
+        req.onerror = () => {
+            reject(req.error);
+        }
+    });
+}
+
 type CompressedQdChapterInfo = {
     compressed: Uint8Array;
     bookId: number;
@@ -150,6 +220,12 @@ export class IndexedDb implements Db {
     }
     async saveQdBook(info: QdBookInfo) {
         await save_data(this.qddb, 'books', info);
+    }
+    async getQdBooks(page: number, pageSize: number): Promise<PagedData<QdBookInfo>> {
+        return await get_paged_data(this.qddb, 'books', page, pageSize);
+    }
+    async getQdBook(id: number): Promise<QdBookInfo | undefined> {
+        return await get_data(this.qddb, 'books', id);
     }
     close() {
         this.qddb.close();
