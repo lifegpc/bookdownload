@@ -1,6 +1,7 @@
 import type { UrlParams, SendMessage, Message } from "./types";
 
 export const QD_CHAPTER_URLPATH_REGEX = /^\/chapter\/(\d+)\/(\d+)\/?$/;
+export const QD_BOOK_URLPATH_REGEX = /^\/book\/(\d+)\/?$/;
 
 export function parseUrlParams(url: string | URL): UrlParams | undefined {
     const u = url instanceof URL ? url : new URL(url);
@@ -12,6 +13,14 @@ export function parseUrlParams(url: string | URL): UrlParams | undefined {
                 page: 'qdchapter',
                 bookId,
                 chapterId,
+            } as UrlParams;
+        }
+        const bookMatch = u.pathname.match(QD_BOOK_URLPATH_REGEX);
+        if (bookMatch) {
+            const [, bookId] = bookMatch;
+            return {
+                page: 'qdbook',
+                bookId,
             } as UrlParams;
         }
     }

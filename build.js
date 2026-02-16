@@ -91,4 +91,5 @@ async function buildTsx(names, tsnames) {
 fs.rmSync('dist', { recursive: true, force: true });
 fs.mkdirSync('dist', { recursive: true });
 await build('qdchapter');
+await build('qdbook');
 await buildTsx(['popup', 'settings'], ['background']);

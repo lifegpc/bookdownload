@@ -1,4 +1,4 @@
-import * as QdTypes from "./qdtypes";
+import type * as QdTypes from "./qdtypes";
 
 export type DiscriminatedUnion<
     K extends PropertyKey,
@@ -22,8 +22,17 @@ export type QdChapterInfo = {
     hash?: string;
 }
 
+export type QDBookInfo = {
+    bookInfo: QdTypes.BookGData;
+    bookName: string;
+    /**Book ID */
+    id: number;
+    tags: QdTypes.QdBookTag[];
+}
+
 export type SendMessageMap = {
     GetQdChapterInfo: {};
+    GetQdBookInfo: {};
     SaveQdChapterInfo: {
         info: QdChapterInfo;
     };
@@ -33,6 +42,7 @@ export type SendMessage = DiscriminatedUnion<"type", SendMessageMap>;
 
 export type MessageMap = {
     QdChapterInfo: QdChapterInfo,
+    QdBookInfo: QDBookInfo,
 };
 
 export type MessageBody = DiscriminatedUnion<"type", MessageMap>;
@@ -51,8 +61,13 @@ export type QdChapterUrlParams = {
     chapterId: string;
 }
 
+export type QdBookUrlParams = {
+    bookId: string;
+}
+
 export type UrlParamsMap = {
     qdchapter: QdChapterUrlParams;
+    qdbook: QdBookUrlParams;
 }
 
 export type UrlParams = DiscriminatedUnion<"page", UrlParamsMap>;

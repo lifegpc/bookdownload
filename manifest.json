@@ -41,6 +41,27 @@
             ],
             "run_at": "document_start",
             "world": "MAIN"
+        },
+        {
+            "matches": [
+                "http://*.qidian.com/book/*",
+                "https://*.qidian.com/book/*"
+            ],
+            "js": [
+                "dist/qdbook.js"
+            ],
+            "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "http://*.qidian.com/book/*",
+                "https://*.qidian.com/book/*"
+            ],
+            "js": [
+                "inject/qdbook.js"
+            ],
+            "run_at": "document_start",
+            "world": "MAIN"
         }
     ],
     "options_ui": { 

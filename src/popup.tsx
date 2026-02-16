@@ -42,6 +42,12 @@ function PopupBody() {
                     });
                     setResult(msg);
                 }
+                if (params.page === 'qdbook') {
+                    const msg = await sendMessageToTab(tab.id, {
+                        type: 'GetQdBookInfo',
+                    });
+                    setResult(msg);
+                }
             } catch (e) {
                 setError(e instanceof Error ? e.message : 'Unknown error');
                 return;
@@ -62,6 +68,9 @@ function PopupBody() {
             /**@ts-ignore*/
             delete body.type;
             return <QdChapterInfoModel info={body} />;
+        }
+        if (result.ok && result.body?.type === 'QdBookInfo') {
+            return <Result status="success" title={result.body.bookName} subTitle={`Book ID: ${result.body.id}`} />;
         }
         return <Result status="error" title="错误" subTitle={result.msg || '未知错误'} />;
     }

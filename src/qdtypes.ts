@@ -166,3 +166,45 @@ export type PageContext = {
         };
     };
 };
+
+export type BookGData = {
+    chanId: number;
+    checkLevel8: boolean;
+    firstChapterId: number;
+    imgUrl: string;
+    isBookAlbum: boolean;
+    isCatelog: boolean;
+    isPublication: number;
+    pageJson: {
+        authorInfo: {
+            authorId: string;
+            authorName: string;
+            avatar: string;
+        },
+        bookId: number;
+        bookType: number;
+        isLogin: boolean;
+        isPublication: boolean;
+        isSign: number;
+        isVip: number;
+        salesMode: number;
+        signStatus: string;
+    }
+}
+
+export type Volume = {
+    name: string;
+    id: number;
+}
+
+export enum QdBookTagType {
+    System,
+    Category,
+    User,
+}
+
+export type QdBookTag = {
+    name: string;
+    type: QdBookTagType;
+    url?: string;
+}
