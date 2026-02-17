@@ -4,6 +4,7 @@ import type { CollectionModel } from "pocketbase";
 import { PocketBaseConfig } from "../config";
 import { QdChapterInfo, QdBookInfo, PagedData } from "../types";
 import { hash_qdchapter_info } from "../utils/qd";
+import { loadConfig, saveConfig } from "../utils";
 
 const QD_CHAPTERS_FIELDS = [
     {
@@ -72,7 +73,7 @@ export class PocketBaseDb implements Db {
         if (!this.client.authStore.isValid) {
             throw new Error('Failed to authenticate with PocketBase. Please check your credentials.');
         }
-        localStorage.setItem(`${this.cfg.url}/${this.cfg.username}.token`, this.client.authStore.token);
+        await saveConfig(`${this.cfg.url}/${this.cfg.username}.token`, this.client.authStore.token);
     }
     async _collections() {
         try {
@@ -88,7 +89,7 @@ export class PocketBaseDb implements Db {
         }
     }
     async init() {
-        const token = localStorage.getItem(`${this.cfg.url}/${this.cfg.username}.token`);
+        const token = await loadConfig(`${this.cfg.url}/${this.cfg.username}.token`, "");
         if (token) {
             this.client.authStore.save(token);
             this.use_token = true;
