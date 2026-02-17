@@ -62,16 +62,40 @@ const QD_BOOKS_INDEXES = [
 export class PocketBaseDb implements Db {
     client: PocketBase;
     cfg: PocketBaseConfig;
+    use_token: boolean = false;
     constructor(cfg: PocketBaseConfig) {
         this.cfg = cfg;
         this.client = new PocketBase(cfg.url);
     }
-    async init() {
+    async auth() {
         await this.client.collection('_superusers').authWithPassword(this.cfg.username, this.cfg.password);
         if (!this.client.authStore.isValid) {
             throw new Error('Failed to authenticate with PocketBase. Please check your credentials.');
         }
-        const collections = await this.client.collections.getFullList({filter: this.cfg.prefix ? `name ~ "${this.cfg.prefix}%"` : undefined});
+        localStorage.setItem(`${this.cfg.url}/${this.cfg.username}.token`, this.client.authStore.token);
+    }
+    async _collections() {
+        try {
+            return await this.client.collections.getFullList({filter: this.cfg.prefix ? `name ~ "${this.cfg.prefix}%"` : undefined});
+        } catch (e) {
+            if (this.use_token) {
+                this.use_token = false;
+                this.client.authStore.clear();
+                await this.auth();
+                return await this.client.collections.getFullList({filter: this.cfg.prefix ? `name ~ "${this.cfg.prefix}%"` : undefined});
+            }
+            throw e;
+        }
+    }
+    async init() {
+        const token = localStorage.getItem(`${this.cfg.url}/${this.cfg.username}.token`);
+        if (token) {
+            this.client.authStore.save(token);
+            this.use_token = true;
+        } else {
+            await this.auth();
+        }
+        const collections = await this._collections();
         const collectionNames = new Set(collections.map(c => c.name));
         if (!collectionNames.has(`${this.cfg.prefix}qd_chapters`)) {
             await this.createCollection('qd_chapters', QD_CHAPTERS_FIELDS, QD_CHAPTERS_INDEXES);
