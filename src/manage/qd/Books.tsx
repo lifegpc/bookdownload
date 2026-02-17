@@ -10,7 +10,6 @@ const { Paragraph } = Typography;
 export default function Books() {
     const db = useDb();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [container, setContainer] = useState<HTMLDivElement | null>(null);
     const [page, setPage] = useState(Number(searchParams.get('page') || '1'));
     const [pageSize, setPageSize] = useState(Number(searchParams.get('pageSize') || '10'));
     const [totalCount, setTotalCount] = useState<number | null>(null);
@@ -43,9 +42,10 @@ export default function Books() {
                 }]
             } />
             <Divider />
-            <div ref={setContainer}>
-                {totalCount !== null && (<Affix target={() => container}>
+            <div>
+                {totalCount !== null && (<Affix offsetTop={10}>
                     <Pagination
+                        className={styles.affix}
                         total={totalCount}
                         pageSize={pageSize}
                         pageSizeOptions={[10, 20, 50, 100]}

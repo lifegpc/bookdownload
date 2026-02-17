@@ -4,12 +4,14 @@ import { useDb } from "../dbProvider";
 import type { QdBookInfo } from "../../types";
 import { useEffect, useState } from "react";
 import { BookInfoContext } from "./BookInfoProvider";
+import { BookStatusContext, createBookStatus } from "./BookStatusProvider";
 
 export default function Book() {
     const db = useDb();
     const { id } = useParams();
     const [book, setBook] = useState<QdBookInfo | null>(null);
     const [err, setErr] = useState<string | null>(null);
+    const [bookStatus, setBookStatus] = useState(createBookStatus());
     async function load() {
         const data = await db.getQdBook(Number(id));
         if (data) {
@@ -46,7 +48,9 @@ export default function Book() {
                 subTitle={err}
                 extra={<Button type="primary" onClick={() => { setErr(null); handle(); }}>重试</Button>} />}
             {book && (<BookInfoContext.Provider value={book}>
-                <Outlet />
+                <BookStatusContext.Provider value={[bookStatus, setBookStatus]}>
+                    <Outlet />
+                </BookStatusContext.Provider>
             </BookInfoContext.Provider>)}
         </>
     );

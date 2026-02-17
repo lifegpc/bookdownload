@@ -6,7 +6,6 @@ import SwitchLabel from "../components/SwitchLabel";
 import AlertWarn from "../components/AlertWarn";
 
 export default function QdSettings() {
-    const [container, setContainer] = useState<HTMLElement | null>(null);
     const [config] = useState(new QdConfig());
     const [autoSaveChapter, setAutoSaveChapter] = useState(false);
     const [alert, setAlert] = useState<{ title?: string; content: string } | null>(null);
@@ -33,8 +32,8 @@ export default function QdSettings() {
         handleConfig();
     }
     return (
-        <div ref={setContainer}>
-            <Affix target={() => container}>
+        <div>
+            <Affix offsetTop={10}>
                 <Button type="primary" icon={<SaveOutlined />} onClick={saveSettings}>保存设置</Button>
                 <Button onClick={resetSettings} style={{ marginLeft: 8 }} icon={<SyncOutlined />}>重置设置</Button>
             </Affix>

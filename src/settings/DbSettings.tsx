@@ -85,7 +85,6 @@ function PocketBaseSettings({config}: { config: PocketBaseConfig }) {
 }
 
 export default function DbSettings() {
-    const [container, setContainer] = useState<HTMLElement | null>(null);
     const [config] = useState(new DbConfig());
     const [alert, setAlert] = useState<{ title?: string; content: string } | null>(null);
     const [dbType, setDbType] = useState<DbType>(DbType.IndexedDb);
@@ -114,8 +113,8 @@ export default function DbSettings() {
         handleConfig();
     }
     return (
-        <div ref={setContainer}>
-            <Affix target={() => container}>
+        <div>
+            <Affix offsetTop={10}>
                 <Button type="primary" icon={<SaveOutlined />} onClick={saveSettings}>保存设置</Button>
                 <Button onClick={resetSettings} style={{ marginLeft: 8 }} icon={<SyncOutlined />}>重置设置</Button>
             </Affix>
