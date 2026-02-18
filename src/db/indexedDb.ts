@@ -61,7 +61,37 @@ function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKey | ID
     });
 }
 
-function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void , key?: IDBValidKey | IDBKeyRange, index?: string): Promise<U[]> {
+function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, key: IDBValidKey | IDBKeyRange, convert: (key: IDBValidKey, data: T) => Promise<U> | U, index?: string, direction?: IDBCursorDirection): Promise<U | undefined> {
+    return new Promise<U | undefined>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = index ? store.index(index).openCursor(key, direction) : store.openCursor(key, direction);
+        req.onsuccess = () => {
+            const cursor = req.result;
+            if (cursor) {
+                try {
+                    const res = convert(cursor.primaryKey, cursor.value);
+                    if (res instanceof Promise) {
+                        res.then(resolve).catch(err => {
+                            reject(err);
+                        });
+                        return;
+                    }
+                    resolve(res);
+                } catch (err) {
+                    reject(err);
+                }
+            } else {
+                resolve(undefined);
+            }
+        };
+        req.onerror = () => {
+            reject(req.error);
+        };
+    });
+}
+
+function get_datas_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void, key?: IDBValidKey | IDBKeyRange, index?: string): Promise<U[]> {
     return new Promise<U[]>((resolve, reject) => {
         const list: U[] = [];
         const tx = db.transaction(storeName, 'readonly');
@@ -258,10 +288,10 @@ export class IndexedDb implements Db {
     async getQdBook(id: number): Promise<QdBookInfo | undefined> {
         return await get_data(this.qddb, 'books', id);
     }
-    async getChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]> {
+    async getQdChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]> {
         // chapterId-> [index, time]
         const currents: Map<number, [number, number]> = new Map();
-        return await get_data_with_convert<QdChapterInfo | CompressedQdChapterInfo, QdChapterSimpleInfo>(this.qddb, 'chapters', async (key, data, list) => {
+        return await get_datas_with_convert<QdChapterInfo | CompressedQdChapterInfo, QdChapterSimpleInfo>(this.qddb, 'chapters', async (key, data, list) => {
             if ('compressed' in data) {
                 const decompressed = await decompress(data.compressed);
                 const decoded = new TextDecoder().decode(decompressed);
@@ -277,6 +307,7 @@ export class IndexedDb implements Db {
                     id: data.id,
                     name: data.chapterInfo.chapterName,
                     bookId: data.bookId,
+                    time: data.time,
                 };
             } else if (!oldValue) {
                 currents.set(data.id, value);
@@ -285,9 +316,33 @@ export class IndexedDb implements Db {
                     id: data.id,
                     name: data.chapterInfo.chapterName,
                     bookId: data.bookId,
+                    time: data.time,
                 });
             }
         }, bookId, 'bookId');
+    }
+    async getQdChapter(key: unknown): Promise<QdChapterInfo | undefined> {
+        const k = key as QdChapterKey;
+        const data = await get_data<CompressedQdChapterInfo | QdChapterInfo>(this.qddb, 'chapters', k);
+        if (!data) {
+            return undefined;
+        }
+        if ('compressed' in data) {
+            const decompressed = await decompress(data.compressed);
+            const decoded = new TextDecoder().decode(decompressed);
+            return JSON.parse(decoded) as QdChapterInfo;
+        }
+        return data;
+    }
+    async getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined> {
+        return await get_data_with_convert<CompressedQdChapterInfo | QdChapterInfo, QdChapterInfo>(this.qddb, 'chapters', id, async (key, data) => {
+            if ('compressed' in data) {
+                const decompressed = await decompress(data.compressed);
+                const decoded = new TextDecoder().decode(decompressed);
+                return JSON.parse(decoded) as QdChapterInfo;
+            }
+            return data;
+        }, 'id', 'prevunique');
     }
     close() {
         this.qddb.close();

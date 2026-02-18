@@ -218,7 +218,7 @@ export class PocketBaseDb implements Db {
         });
         return records.totalItems > 0 ? records.items[0].data : undefined;
     }
-    async getChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]> {
+    async getQdChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]> {
         // chapterId -> [index, time]
         const currents: Map<number, [number, number]> = new Map();
         const list = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getFullList({
@@ -239,6 +239,7 @@ export class PocketBaseDb implements Db {
                     id: item.chapterId,
                     name: data.chapterInfo.chapterName,
                     bookId: item.bookId,
+                    time: item.time,
                 };
             } else if (!oldValue) {
                 currents.set(key, value);
@@ -247,10 +248,27 @@ export class PocketBaseDb implements Db {
                     id: item.chapterId,
                     name: data.chapterInfo.chapterName,
                     bookId: item.bookId,
+                    time: item.time,
                 });
             }
         }
         return re;
+    }
+    async getQdChapter(key: unknown): Promise<QdChapterInfo | undefined> {
+        const k = String(key);
+        const record = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
+            filter: `id = "${k}"`,
+            fields: 'data',
+        });
+        return record.totalItems > 0 ? record.items[0].data : undefined;
+    }
+    async getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined> {
+        const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
+            filter: `chapterId = ${id}`,
+            fields: 'data',
+            sort: '-time',
+        });
+        return records.totalItems > 0 ? records.items[0].data : undefined;
     }
     close(): void {
         this.client.cancelAllRequests();

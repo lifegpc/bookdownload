@@ -1,7 +1,7 @@
 import { Affix, Flex, Space, Tag, Typography, Switch, Skeleton, Result, Button } from "antd";
 import { useBookInfo } from "./BookInfoProvider";
 import styles from './BookIndex.module.css';
-import { loadChapterListsIfNeeded, useBookStatus } from "./BookStatusProvider";
+import { loadChapterListsIfNeeded, useBookContext, useBookStatus } from "./BookStatusProvider";
 import VolumesList from "./VolumesList";
 import { useEffect, useState } from "react";
 import { useDb } from "../dbProvider";
@@ -16,6 +16,7 @@ export default function BookIndex() {
     const bookInfo = useBookInfo();
     const db = useDb();
     const [bookStatus, setBookStatus] = useBookStatus();
+    const setItems = useBookContext();
     const [err, setErr] = useState<string | null>(null);
     function setShowSavedOnly(showSavedOnly: boolean) {
         setBookStatus({ ...bookStatus, showSavedOnly });
@@ -32,6 +33,7 @@ export default function BookIndex() {
     useEffect(() => {
         handle();
     }, [bookInfo.id]);
+    setItems([]);
     let vols: Volume[] = bookInfo.volumes;
     if (bookStatus.chapterLists) {
         vols = get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, !bookStatus.showSavedOnly);

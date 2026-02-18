@@ -40,4 +40,7 @@ export default defineConfig([
             "@typescript-eslint/no-empty-object-type": "off",
         }
     },
+    {
+        ignores: ['build.js'],
+    }
 ]);

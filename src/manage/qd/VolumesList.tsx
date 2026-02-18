@@ -1,8 +1,7 @@
-import { Collapse, Flex, Typography } from "antd";
+import { Collapse, Flex } from "antd";
 import type { Volume } from "../../qdtypes";
 import styles from './VolumesList.module.css';
-
-const { Text } = Typography;
+import { Link } from "react-router";
 
 export type VolumesListProps = {
     volumes: Volume[];
@@ -18,7 +17,7 @@ export default function VolumesList({ volumes, bookId }: VolumesListProps) {
                 extra: v.isVip ? <span style={{ color: 'red' }}>VIP卷</span> : null,
                 children: <Flex wrap>
                     {v.chapters.map(chapter => (
-                        <Text className={styles.ch} key={chapter.id}>{chapter.name}</Text>
+                        <Link to={`/qd/book/${bookId}/chapter/${chapter.id}`} className={styles.ch} key={chapter.id}>{chapter.name}</Link>
                     ))}
                 </Flex>
             }

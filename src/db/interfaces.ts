@@ -22,7 +22,17 @@ export interface Db {
      * Primary key should be the latest (time is biggest) saved chapter.
      * @param bookId Book ID
      */
-    getChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]>;
+    getQdChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]>;
+    /**
+     * Get chapter info by primary key. if not found, return undefined.
+     * @param key Primary key of the chapter, which is determined by the database implementation.
+     */
+    getQdChapter(key: unknown): Promise<QdChapterInfo | undefined>;
+    /**
+     * Get the latest (which time is biggest) chapter of a chapter. if not found, return undefined.
+     * @param id Chapter ID
+     */
+    getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined>;
     close(): void;
 }
 

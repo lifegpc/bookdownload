@@ -12,6 +12,7 @@
     "esbuild-plugin-eslint": "^0.3.12",
     "eslint": "9",
     "eslint-plugin-react": "^7.37.5",
+    "lodash.isequal": "^4.5.0",
     "pocketbase": "^0.26.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

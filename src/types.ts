@@ -27,6 +27,7 @@ export type QdChapterSimpleInfo = {
     id: number;
     name: string;
     bookId: number;
+    time: number;
 }
 
 export type QdBookInfo = {

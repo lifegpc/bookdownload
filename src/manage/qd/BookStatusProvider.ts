@@ -1,6 +1,8 @@
 import { createContext, useContext, Dispatch, SetStateAction } from "react";
 import { QdChapterSimpleInfo } from "../../types";
 import { Db } from "../../db/interfaces";
+import { useOutletContext } from "react-router";
+import type { ItemType } from "antd/es/breadcrumb/Breadcrumb";
 
 export type BookStatus = {
     showSavedOnly: boolean;
@@ -14,7 +16,7 @@ export function createBookStatus(): BookStatus {
 }
 
 export async function loadChapterLists(bookId: number, setBookStatus: Dispatch<SetStateAction<BookStatus>>, db: Db) {
-    const list = await db.getChapterSimpleInfos(bookId);
+    const list = await db.getQdChapterSimpleInfos(bookId);
     setBookStatus((status) => ({ ...status, chapterLists: list }));
 }
 
@@ -28,5 +30,9 @@ export const BookStatusContext = createContext<[BookStatus, Dispatch<SetStateAct
 
 export function useBookStatus() {
     return useContext(BookStatusContext);
+}
+
+export function useBookContext() {
+    return useOutletContext<Dispatch<ItemType[]>>();
 }
 
