@@ -34,7 +34,6 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
     if (keep) {
         const volMap: Map<number, string> = new Map();
         for (const vol of volumes) {
-            const id = vol.id;
             for (const ch of vol.chapters) {
                 volMap.set(ch.id, vol.name);
             }

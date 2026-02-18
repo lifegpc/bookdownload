@@ -24,7 +24,7 @@ function IndexedDbSettings({config}: { config: IndexedDbConfig }) {
 
 async function testPocketBaseConnection(config: PocketBaseConfig) {
     const client = new PocketBase(config.url);
-    const authData = await client.collection('_superusers').authWithPassword(config.username, config.password);
+    const _authData = await client.collection('_superusers').authWithPassword(config.username, config.password);
     return client.authStore.isValid;
 }
 

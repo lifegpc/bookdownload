@@ -1,7 +1,5 @@
-import { Breadcrumb, Button, Card, Divider, Space, Typography } from 'antd';
+import { Breadcrumb, Button, Card, Divider, Space } from 'antd';
 import { useNavigate } from 'react-router';
-
-const { Text } = Typography;
 
 export default function Home() {
     const navigate = useNavigate();

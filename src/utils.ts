@@ -68,7 +68,7 @@ export function saveAsFile(filename: string, content: string, mimeType: string =
     URL.revokeObjectURL(url);
 }
 
-export async function saveConfig(key: string, config: any): Promise<void> {
+export async function saveConfig(key: string, config: unknown): Promise<void> {
     return await chrome.storage.local.set({ [key]: config });
 }
 
@@ -145,5 +145,5 @@ export function toHex(bytes: Uint8Array): string {
     return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/**@ts-ignore */
+/**@ts-expect-error Detect ServiceWorkerGlobalScope */
 export const isServiceWorker = typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope;

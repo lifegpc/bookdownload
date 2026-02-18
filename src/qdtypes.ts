@@ -114,7 +114,7 @@ export type ChapterAuthorWords = {
 
 export type ChapterInfo = {
     actualWords: number;
-    authorRecommend: any[]; // Assuming array of unknown type, can be refined if needed
+    authorRecommend: unknown[]; // Assuming array of unknown type, can be refined if needed
     authorSay: string;
     cbid: string;
     ccid: string;

@@ -197,9 +197,9 @@ export class IndexedDb implements Db {
     }
     init_qddb() {
         return new Promise<void>((resolve, reject) => {
-            let dbreq = indexedDB.open('qd', 1);
+            const dbreq = indexedDB.open('qd', 1);
             dbreq.onupgradeneeded = function (event) {
-                let db = this.result;
+                const db = this.result;
                 console.log('Upgrading qd database from version', event.oldVersion, 'to', event.newVersion);
                 const nan = isNaN(event.oldVersion);
                 if (nan || event.oldVersion < 1) {

@@ -5,7 +5,7 @@ import { get_chapter_content } from './utils';
 import Notification from './components/Notifiction';
 
 function getPageData(): PageContext | undefined {
-    let data = document.getElementById('vite-plugin-ssr_pageContext')?.innerHTML;
+    const data = document.getElementById('vite-plugin-ssr_pageContext')?.innerHTML;
     if (!data) {
         return undefined;
     }

@@ -55,7 +55,7 @@ export default function BookIndex() {
                     <Flex justify="flex-end">
                         <Tag className={styles.sign} color="green" variant="outlined">{bookInfo.bookInfo.pageJson.signStatus}</Tag>
                     </Flex>
-                    <Paragraph className={styles.intro}>{bookInfo.intro.split('\n').map((line, index) => (
+                    <Paragraph className={styles.intro}>{bookInfo.intro.split('\n').map((line) => (
                         <>{line}<br /></>
                     ))}</Paragraph>
                 </Space>

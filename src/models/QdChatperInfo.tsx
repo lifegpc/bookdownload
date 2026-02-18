@@ -3,7 +3,7 @@ import type { QdChapterInfo } from '../types';
 import { get_chapter_content, saveAsFile } from '../utils';
 import { createDb } from '../db/interfaces';
 
-const { Title, Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface QdChapterInfoProps {
     info: QdChapterInfo;
@@ -11,11 +11,6 @@ interface QdChapterInfoProps {
 
 export default function QdChapterInfo({ info }: QdChapterInfoProps) {
     const { chapterInfo, bookInfo, contents } = info;
-    // 格式化更新时间
-    const formatTime = (timestamp: number) => {
-        return new Date(timestamp).toLocaleString('zh-CN');
-    };
-
     // 格式化VIP状态
     const getVipStatusTag = (vipStatus: number) => {
         return vipStatus === 1 ? (
@@ -37,8 +32,8 @@ export default function QdChapterInfo({ info }: QdChapterInfoProps) {
     const chapters = contents ?? get_chapter_content(chapterInfo.content);
 
     function saveAsTxt() {
-        const chapterName = chapterInfo.chapterName.replace(/[\/\\?%*:|"<>]/g, '_');
-        const bookName = bookInfo.bookName.replace(/[\/\\?%*:|"<>]/g, '_');
+        const chapterName = chapterInfo.chapterName.replace(/[/\\?%*:|"<>]/g, '_');
+        const bookName = bookInfo.bookName.replace(/[/\\?%*:|"<>]/g, '_');
         const filename = `${bookName} - ${chapterName}.txt`;
         const content = `章节名: ${chapterInfo.chapterName}\n更新时间：${chapterInfo.updateTime}\n字数: ${chapterInfo.wordsCount.toLocaleString()} 字\n\n` + chapters.join('\n');
         saveAsFile(filename, content);

@@ -3,6 +3,7 @@ import process from 'node:process';
 import fs from 'node:fs';
 import path from 'node:path';
 import colors from 'colors';
+import esbuildPluginEslint from 'esbuild-plugin-eslint';
 
 const is_dev = process.argv.includes('--dev');
 const is_dbg = process.argv.includes('--debug');
@@ -42,6 +43,10 @@ function displayResult(result) {
     }
 }
 
+const plugins = [
+    esbuildPluginEslint(),
+];
+
 async function build(name, is_content_script = true) {
     const result = await esbuild.build({
         entryPoints: [`src/${name}.ts`],
@@ -52,6 +57,7 @@ async function build(name, is_content_script = true) {
         target: ['chrome100'],
         sourcemap: sourcemap(is_content_script),
         metafile: true,
+        plugins,
     })
     displayResult(result);
     return result;
@@ -78,6 +84,7 @@ async function buildTsx(names, tsnames) {
         splitting: true,
         format: 'esm',
         metafile: true,
+        plugins,
     });
     for (const name of names) {
         const srcHtmlPath = path.join('src', `${name}.html`);

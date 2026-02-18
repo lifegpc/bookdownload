@@ -34,7 +34,7 @@ export default function QdBookInfo({ info }: QdBookInfoProps) {
                                 {info.tags.map(tag => tag.name).join(', ')}
                             </Descriptions.Item>
                             <Descriptions.Item label="简介">
-                                {info.intro.split('\n').map((line, index) => (
+                                {info.intro.split('\n').map((line) => (
                                     <>{line}<br /></>
                                 ))}
                             </Descriptions.Item>

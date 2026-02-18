@@ -24,7 +24,7 @@ export async function loadChapterListsIfNeeded(bookId: number, bookStatus: BookS
     }
 }
 
-export const BookStatusContext = createContext<[BookStatus, Dispatch<SetStateAction<BookStatus>>]>(null as any);
+export const BookStatusContext = createContext<[BookStatus, Dispatch<SetStateAction<BookStatus>>]>(null as unknown as [BookStatus, Dispatch<SetStateAction<BookStatus>>]);
 
 export function useBookStatus() {
     return useContext(BookStatusContext);

@@ -50,7 +50,7 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener((info) => {
     if (info.menuItemId === 'manage') {
         chrome.tabs.create({
             url: chrome.runtime.getURL('dist/manage.html'),

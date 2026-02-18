@@ -66,13 +66,13 @@ function PopupBody() {
         console.log(result);
         if (result.ok && result.body?.type === 'QdChapterInfo') {
             const body: QdChapterInfo = result.body;
-            /**@ts-ignore*/
+            /**@ts-expect-error Detecting type property */
             delete body.type;
             return <QdChapterInfoModel info={body} />;
         }
         if (result.ok && result.body?.type === 'QdBookInfo') {
             const body: QdBookInfo = result.body;
-            /**@ts-ignore*/
+            /**@ts-expect-error Detecting type property */
             delete body.type;
             return <QdBookInfoModel info={body} />;
         }
