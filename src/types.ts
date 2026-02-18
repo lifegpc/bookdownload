@@ -22,6 +22,13 @@ export type QdChapterInfo = {
     hash?: string;
 }
 
+export type QdChapterSimpleInfo = {
+    primaryKey: unknown;
+    id: number;
+    name: string;
+    bookId: number;
+}
+
 export type QdBookInfo = {
     bookInfo: QdTypes.BookGData;
     bookName: string;

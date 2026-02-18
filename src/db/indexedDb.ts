@@ -1,6 +1,6 @@
 import { IndexedDbConfig } from "../config";
-import type { QdChapterInfo, QdBookInfo, PagedData } from "../types";
-import { compress, isServiceWorker } from "../utils";
+import type { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo } from "../types";
+import { compress, decompress, isServiceWorker } from "../utils";
 import { hash_qdchapter_info } from "../utils/qd";
 import type { Db } from "./interfaces";
 
@@ -57,6 +57,37 @@ async function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKe
         }
         req.onerror = () => {
             reject(req.error);
+        }
+    });
+}
+
+async function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void , key?: IDBValidKey | IDBKeyRange, index?: string): Promise<U[]> {
+    return new Promise<U[]>((resolve, reject) => {
+        const list: U[] = [];
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = index ? store.index(index).openCursor(key) : store.openCursor(key);
+        req.onsuccess = () => {
+            const cursor = req.result;
+            if (cursor) {
+                try {
+                    const res = convert(cursor.primaryKey, cursor.value, list);
+                    if (res instanceof Promise) {
+                        res.then(() => {
+                            cursor.continue();
+                        }).catch(err => {
+                            reject(err);
+                        });
+                        return;
+                    }
+                } catch (err) {
+                    reject(err);
+                    return;
+                }
+                cursor.continue();
+            } else {
+                resolve(list);
+            }
         }
     });
 }
@@ -145,7 +176,7 @@ async function get_paged_data<T>(db: IDBDatabase, storeName: string, page: numbe
 }
 
 type CompressedQdChapterInfo = {
-    compressed: Uint8Array;
+    compressed: Uint8Array<ArrayBuffer>;
     bookId: number;
     id: number;
     time: number;
@@ -226,6 +257,37 @@ export class IndexedDb implements Db {
     }
     async getQdBook(id: number): Promise<QdBookInfo | undefined> {
         return await get_data(this.qddb, 'books', id);
+    }
+    async getChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]> {
+        // chapterId-> [index, time]
+        const currents: Map<number, [number, number]> = new Map();
+        return await get_data_with_convert<QdChapterInfo | CompressedQdChapterInfo, QdChapterSimpleInfo>(this.qddb, 'chapters', async (key, data, list) => {
+            if ('compressed' in data) {
+                const decompressed = await decompress(data.compressed);
+                const decoded = new TextDecoder().decode(decompressed);
+                data = JSON.parse(decoded) as QdChapterInfo;
+            }
+            const value: [number, number] = [list.length, data.time];
+            const oldValue = currents.get(data.id);
+            if (oldValue && value[1] > oldValue[1]) {
+                value[0] = oldValue[0];
+                currents.set(data.id, value);
+                list[oldValue[0]] = {
+                    primaryKey: key,
+                    id: data.id,
+                    name: data.chapterInfo.chapterName,
+                    bookId: data.bookId,
+                };
+            } else if (!oldValue) {
+                currents.set(data.id, value);
+                list.push({
+                    primaryKey: key,
+                    id: data.id,
+                    name: data.chapterInfo.chapterName,
+                    bookId: data.bookId,
+                });
+            }
+        }, bookId, 'bookId');
     }
     close() {
         this.qddb.close();

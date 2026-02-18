@@ -2,7 +2,7 @@ import type { Db } from "./interfaces";
 import PocketBase from "pocketbase";
 import type { CollectionModel } from "pocketbase";
 import { PocketBaseConfig } from "../config";
-import { QdChapterInfo, QdBookInfo, PagedData } from "../types";
+import { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo } from "../types";
 import { hash_qdchapter_info } from "../utils/qd";
 import { loadConfig, saveConfig } from "../utils";
 
@@ -217,6 +217,40 @@ export class PocketBaseDb implements Db {
             fields: 'data',
         });
         return records.totalItems > 0 ? records.items[0].data : undefined;
+    }
+    async getChapterSimpleInfos(bookId: number): Promise<QdChapterSimpleInfo[]> {
+        // chapterId -> [index, time]
+        const currents: Map<number, [number, number]> = new Map();
+        const list = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getFullList({
+            filter: `bookId = ${bookId}`,
+            fields: 'id,chapterId,bookId,time,data.chapterInfo.chapterName',
+        });
+        const re: QdChapterSimpleInfo[] = [];
+        for (const item of list) {
+            const data: QdChapterInfo = item.data;
+            const key: number = item.chapterId;
+            const value: [number, number] = [re.length, item.time];
+            const oldValue = currents.get(key);
+            if (oldValue && value[1] > oldValue[1]) {
+                value[0] = oldValue[0];
+                currents.set(key, value);
+                re[oldValue[0]] = {
+                    primaryKey: item.id,
+                    id: item.chapterId,
+                    name: data.chapterInfo.chapterName,
+                    bookId: item.bookId,
+                };
+            } else if (!oldValue) {
+                currents.set(key, value);
+                re.push({
+                    primaryKey: item.id,
+                    id: item.chapterId,
+                    name: data.chapterInfo.chapterName,
+                    bookId: item.bookId,
+                });
+            }
+        }
+        return re;
     }
     close(): void {
         this.client.cancelAllRequests();
