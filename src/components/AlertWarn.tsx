@@ -8,5 +8,5 @@ export type AlertWarnProps = {
 };
 
 export default function AlertWarn({ title = "警告", content, onClose, okText = "好的" }: AlertWarnProps) {
-    return <Modal title={title} open={true} onOk={onClose} onCancel={onClose} okText={okText} cancelButtonProps={{ style: { display: "none" } }}>{content}</Modal>
+    return <Modal title={title} open onOk={onClose} onCancel={onClose} okText={okText} cancelButtonProps={{ style: { display: "none" } }}>{content}</Modal>
 }

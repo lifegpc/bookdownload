@@ -11,7 +11,7 @@ async function make_storage_persist() {
     }
 }
 
-async function save_data<T>(db: IDBDatabase, storeName: string, data: T, key?: IDBValidKey) {
+function save_data<T>(db: IDBDatabase, storeName: string, data: T, key?: IDBValidKey) {
     return new Promise<IDBValidKey>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
@@ -28,7 +28,7 @@ async function save_data<T>(db: IDBDatabase, storeName: string, data: T, key?: I
 type QdChapterKey = [number, number, number];
 type QdChapterHashKey = [number, number, string];
 
-async function get_data<T>(db: IDBDatabase, storeName: string, key: IDBValidKey | IDBKeyRange, index?: string): Promise<T | undefined> {
+function get_data<T>(db: IDBDatabase, storeName: string, key: IDBValidKey | IDBKeyRange, index?: string): Promise<T | undefined> {
     return new Promise<T | undefined>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
@@ -47,7 +47,7 @@ type GetAllOptions = {
     count?: number;
 }
 
-async function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKey | IDBKeyRange, options?: GetAllOptions): Promise<T[]> {
+function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKey | IDBKeyRange, options?: GetAllOptions): Promise<T[]> {
     return new Promise<T[]>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
@@ -61,7 +61,7 @@ async function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKe
     });
 }
 
-async function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void , key?: IDBValidKey | IDBKeyRange, index?: string): Promise<U[]> {
+function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void , key?: IDBValidKey | IDBKeyRange, index?: string): Promise<U[]> {
     return new Promise<U[]>((resolve, reject) => {
         const list: U[] = [];
         const tx = db.transaction(storeName, 'readonly');
@@ -92,7 +92,7 @@ async function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, c
     });
 }
 
-async function get_keys<K extends IDBValidKey = IDBValidKey>(db: IDBDatabase, storeName: string, query?: IDBValidKey | IDBKeyRange, options?: GetAllOptions): Promise<K[]> {
+function get_keys<K extends IDBValidKey = IDBValidKey>(db: IDBDatabase, storeName: string, query?: IDBValidKey | IDBKeyRange, options?: GetAllOptions): Promise<K[]> {
     return new Promise<K[]>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
@@ -106,7 +106,7 @@ async function get_keys<K extends IDBValidKey = IDBValidKey>(db: IDBDatabase, st
     });
 }
 
-async function get_count(db: IDBDatabase, storeName: string, key?: IDBValidKey | IDBKeyRange, index?: string): Promise<number> {
+function get_count(db: IDBDatabase, storeName: string, key?: IDBValidKey | IDBKeyRange, index?: string): Promise<number> {
     return new Promise<number>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);

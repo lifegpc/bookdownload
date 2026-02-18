@@ -62,7 +62,7 @@ export default function BookIndex() {
             </Flex>
             <Affix offsetTop={10}>
                 <Flex justify="flex-end" className={styles.affix}>
-                    <Switch checked={bookStatus.showSavedOnly} onChange={setShowSavedOnly} checkedChildren={"仅显示已保存章节"} unCheckedChildren={"显示所有章节"} />
+                    <Switch checked={bookStatus.showSavedOnly} onChange={setShowSavedOnly} checkedChildren="仅显示已保存章节" unCheckedChildren="显示所有章节" />
                 </Flex>
             </Affix>
             {bookStatus.showSavedOnly && err && <Result status="error" title="加载章节列表失败" subTitle={err} extra={<Button type="primary" onClick={handle}>重试</Button>} />}

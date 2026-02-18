@@ -11,6 +11,7 @@
     "esbuild": "^0.27.3",
     "esbuild-plugin-eslint": "^0.3.12",
     "eslint": "9",
+    "eslint-plugin-react": "^7.37.5",
     "pocketbase": "^0.26.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -22,7 +23,8 @@
   "scripts": {
     "build": "node build.js --dev",
     "builddbg": "node build.js --dev --debug",
-    "buildrel": "node build.js"
+    "buildrel": "node build.js",
+    "lint": "eslint src"
   },
   "type": "module"
 }

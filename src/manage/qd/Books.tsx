@@ -51,7 +51,7 @@ export default function Books() {
                         pageSizeOptions={[10, 20, 50, 100]}
                         onChange={(page, pageSize) => { setPage(page); setPageSize(pageSize); setSearchParams({ page: String(page), pageSize: String(pageSize) }); }}
                         showTotal={(total, range) => `共 ${total} 条，当前显示 ${range[0]} - ${range[1]} 条`}
-                        showSizeChanger={true}
+                        showSizeChanger
                     />
                 </Affix>)}
                 {!pageData && !err && <Skeleton active />}
