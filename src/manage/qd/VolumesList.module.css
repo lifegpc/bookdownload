@@ -3,6 +3,11 @@
     width: min(calc((100% - 40px) / 4), 300px);
 }
 
+.chone {
+    margin: 4px 8px;
+    width: 100%;
+}
+
 .saved {
     margin-left: auto;
     color: green;

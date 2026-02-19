@@ -1,0 +1,10 @@
+.chs {
+    max-height: calc(100vh - 40px);
+    height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.chc {
+    max-height: calc(100vh - 40px);
+    height: calc(100vh - 40px);
+}

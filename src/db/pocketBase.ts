@@ -67,6 +67,7 @@ export class PocketBaseDb implements Db {
     constructor(cfg: PocketBaseConfig) {
         this.cfg = cfg;
         this.client = new PocketBase(cfg.url);
+        this.client.autoCancellation(false);
     }
     async auth() {
         await this.client.collection('_superusers').authWithPassword(this.cfg.username, this.cfg.password);
