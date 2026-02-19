@@ -4,6 +4,7 @@ import { useBookContext, useBookStatus } from "./BookStatusProvider";
 import { useEffect, useState } from "react";
 import { useDb } from "../dbProvider";
 import type { QdChapterInfo } from "../../types";
+import MonacoEditor from 'react-monaco-editor';
 
 export default function BookChapter() {
     const setItems = useBookContext();
@@ -13,11 +14,13 @@ export default function BookChapter() {
     const db = useDb();
     const [err, setErr] = useState<string | null>(null);
     const [chapter, setChapter] = useState<QdChapterInfo | null>(null);
+    const [chapterContent, setChapterContent] = useState<string>('');
     async function load() {
         const primaryKey = bookStatus.chapterLists?.find(chapter => chapter.id === id)?.primaryKey;
         const data = await (primaryKey ? db.getQdChapter(primaryKey) : db.getLatestQdChapter(id));
         if (data) {
             setChapter(data);
+            setChapterContent(data.contents ? data.contents.join('\n') : data.chapterInfo.content);
         } else {
             setErr("章节不存在");
         }
@@ -46,5 +49,16 @@ export default function BookChapter() {
             subTitle={err}
             extra={<Button type="primary" onClick={() => { setErr(null); load(); }}>重试</Button>} />;
     }
-    return (<></>)
+    return (<>
+        <MonacoEditor
+            value={chapterContent}
+            language="plaintext"
+            width="100%"
+            height="calc(100vh - 50px)"
+            onChange={setChapterContent}
+            options={{
+                wordWrap: 'on',
+            }}
+         />
+    </>)
 }
