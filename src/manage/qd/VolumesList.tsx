@@ -2,6 +2,7 @@ import { Collapse, Flex } from "antd";
 import type { Volume } from "../../qdtypes";
 import styles from './VolumesList.module.css';
 import { Link } from "react-router";
+import { CheckCircleOutlined } from "@ant-design/icons";
 
 export type VolumesListProps = {
     volumes: Volume[];
@@ -17,7 +18,10 @@ export default function VolumesList({ volumes, bookId }: VolumesListProps) {
                 extra: v.isVip ? <span style={{ color: 'red' }}>VIP卷</span> : null,
                 children: <Flex wrap>
                     {v.chapters.map(chapter => (
-                        <Link to={`/qd/book/${bookId}/chapter/${chapter.id}`} className={styles.ch} key={chapter.id}>{chapter.name}</Link>
+                        <Flex className={styles.ch} key={chapter.id}>
+                            <Link to={`/qd/book/${bookId}/chapter/${chapter.id}`}>{chapter.name}</Link>
+                            {chapter.isSaved && <CheckCircleOutlined className={styles.saved} />}
+                        </Flex>
                     ))}
                 </Flex>
             }

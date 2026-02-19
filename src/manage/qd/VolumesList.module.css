@@ -2,3 +2,8 @@
     margin: 4px 8px;
     width: min(calc((100% - 40px) / 4), 300px);
 }
+
+.saved {
+    margin-left: auto;
+    color: green;
+}

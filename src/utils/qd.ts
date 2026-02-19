@@ -32,20 +32,25 @@ export function hash_qdchapter_info(info: QdChapterInfo): string {
 export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Volume[], keep=true): Volume[] {
     const vols: Volume[] = [];
     if (keep) {
-        const volMap: Map<number, string> = new Map();
-        for (const vol of volumes) {
+        const volMap: Map<number, Chapter> = new Map();
+        for (const vo of volumes) {
+            const vol = structuredClone(vo);
             for (const ch of vol.chapters) {
-                volMap.set(ch.id, vol.name);
+                volMap.set(ch.id, ch);
             }
             vols.push(vol);
         }
         const volCh: Chapter[] = [];
         for (const ch of chapterLists) {
-            if (!volMap.has(ch.id)) {
+            const chInfo = volMap.get(ch.id);
+            if (!chInfo) {
                 volCh.push({
                     id: ch.id,
                     name: ch.name,
+                    isSaved: true,
                 });
+            } else {
+                chInfo.isSaved = true;
             }
         }
         if (volCh.length > 0) {

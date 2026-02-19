@@ -195,6 +195,7 @@ export type BookGData = {
 export type Chapter = {
     name: string;
     id: number;
+    isSaved?: boolean;
 }
 
 export type Volume = {
