@@ -4,12 +4,12 @@ import { loadChapterListsIfNeeded, useBookContext, useBookStatus } from "./BookS
 import { useEffect, useRef, useState } from "react";
 import { useDb } from "../dbProvider";
 import type { QdChapterInfo } from "../../types";
-import MonacoEditor, { MonacoEditorHandle } from 'react-monaco-editor';
 import type { Volume } from "../../qdtypes";
 import { useBookInfo } from "./BookInfoProvider";
 import { get_new_volumes } from "../../utils/qd";
 import VolumesList from "./VolumesList";
 import styles from './BookChapter.module.css';
+import ChapterEditor from "./ChapterEditor";
 
 export default function BookChapter() {
     const setItems = useBookContext();
@@ -20,23 +20,34 @@ export default function BookChapter() {
     const [err, setErr] = useState<string | null>(null);
     const [listErr, setListErr] = useState<string | null>(null);
     const [chapter, setChapter] = useState<QdChapterInfo | null>(null);
-    const [chapterContent, setChapterContent] = useState<string>('');
     const bookInfo = useBookInfo();
-    const editorRef = useRef<MonacoEditorHandle>(null);
-    async function load() {
+    const editorRef = useRef<ChapterEditor>(null);
+    async function load(controller?: AbortController) {
         const primaryKey = bookStatus.chapterLists?.find(chapter => chapter.id === id)?.primaryKey;
         const data = await (primaryKey ? db.getQdChapter(primaryKey) : db.getLatestQdChapter(id));
+        if (controller?.signal.aborted) {
+            return;
+        }
         if (data) {
+            if (data.id !== id) return;
             setChapter(data);
-            setChapterContent(data.contents ? data.contents.join('\n') : data.chapterInfo.content);
+            setErr(null);
         } else {
             setErr("章节不存在");
+            setChapter(null);
         }
     }
     function handle_load() {
-        load().catch(e => {
+        const controller = new AbortController();
+        load(controller).catch(e => {
+            if (controller.signal.aborted) {
+                return;
+            }
             setErr(e instanceof Error ? e.message : String(e));
         });
+        return () => {
+            controller.abort();
+        }
     }
     function handle_list_load() {
         if (listErr) {
@@ -52,10 +63,10 @@ export default function BookChapter() {
             return;
         }
         if (chapter) setChapter(null);
-        if (chapterContent) setChapterContent('');
         if (err) setErr(null);
-        handle_load();
+        const abort = handle_load();
         handle_list_load();
+        return abort;
     }, [id]);
     setItems([{
         title: chapter ? `章节详情：${chapter.chapterInfo.chapterName}` : '章节详情'
@@ -75,7 +86,7 @@ export default function BookChapter() {
     return (<>
         <Splitter onResize={() => {
             setTimeout(() => {
-                editorRef.current?.editor.layout();
+                editorRef.current?.layout();
             }, 1);
         }}>
             <Splitter.Panel min='20%' max='40%' defaultSize='30%' collapsible className={styles.chs}>
@@ -89,15 +100,7 @@ export default function BookChapter() {
                     title="数据加载失败"
                     subTitle={err}
                     extra={<Button type="primary" onClick={() => { setErr(null); handle_load(); }}>重试</Button>} />}
-                {chapter && <MonacoEditor
-                    ref={editorRef}
-                    value={chapterContent}
-                    language="plaintext"
-                    onChange={setChapterContent}
-                    options={{
-                        wordWrap: 'on',
-                    }}
-                />}
+                {chapter && <ChapterEditor ref={editorRef} chapter={chapter} />}
                 {!chapter && !err && <Skeleton active />}
             </Splitter.Panel>
         </Splitter>
