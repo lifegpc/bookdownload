@@ -41,6 +41,10 @@ async function load() {
     } else {
         contents = get_chapter_content(chapterInfo.content);
     }
+    if (contents.length === 0) {
+        setTimeout(load, 1000);
+        return;
+    }
     // Clear encrypted content to reduce size.
     chapterInfo.content = '';
     const msg: SendMessage = {

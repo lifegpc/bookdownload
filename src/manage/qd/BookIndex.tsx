@@ -1,4 +1,4 @@
-import { Affix, Flex, Space, Tag, Typography, Switch, Skeleton, Result, Button } from "antd";
+import { Affix, Flex, Space, Tag, Typography, Skeleton, Result, Button } from "antd";
 import { useBookInfo } from "./BookInfoProvider";
 import styles from './BookIndex.module.css';
 import { loadChapterListsIfNeeded, useBookContext, useBookStatus } from "./BookStatusProvider";
@@ -6,7 +6,8 @@ import VolumesList from "./VolumesList";
 import { useEffect, useState } from "react";
 import { useDb } from "../dbProvider";
 import type { Volume } from "../../qdtypes";
-import { get_new_volumes } from "../../utils/qd";
+import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
+import ShowMode from "./ShowMode";
 
 const { Paragraph, Link } = Typography;
 
@@ -18,8 +19,8 @@ export default function BookIndex() {
     const [bookStatus, setBookStatus] = useBookStatus();
     const setItems = useBookContext();
     const [err, setErr] = useState<string | null>(null);
-    function setShowSavedOnly(showSavedOnly: boolean) {
-        setBookStatus({ ...bookStatus, showSavedOnly });
+    function setChapterShowMode(chapterShowMode: ChapterShowMode) {
+        setBookStatus({ ...bookStatus, chapterShowMode });
     }
     function handle() {
         if (err) {
@@ -36,8 +37,8 @@ export default function BookIndex() {
     setItems([]);
     let vols: Volume[] = bookInfo.volumes;
     if (bookStatus.chapterLists) {
-        vols = get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, !bookStatus.showSavedOnly);
-    } else if (bookStatus.showSavedOnly) {
+        vols = get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, bookStatus.chapterShowMode);
+    } else if (bookStatus.chapterShowMode != ChapterShowMode.All) {
         vols = [];
     }
     return (
@@ -64,11 +65,11 @@ export default function BookIndex() {
             </Flex>
             <Affix offsetTop={10}>
                 <Flex justify="flex-end" className={styles.affix}>
-                    <Switch checked={bookStatus.showSavedOnly} onChange={setShowSavedOnly} checkedChildren="仅显示已保存章节" unCheckedChildren="显示所有章节" />
+                    <ShowMode mode={bookStatus.chapterShowMode} onChange={setChapterShowMode} />
                 </Flex>
             </Affix>
-            {bookStatus.showSavedOnly && err && <Result status="error" title="加载章节列表失败" subTitle={err} extra={<Button type="primary" onClick={handle}>重试</Button>} />}
-            {bookStatus.showSavedOnly && !bookStatus.chapterLists && !err && <Skeleton active />}
+            {bookStatus.chapterShowMode != ChapterShowMode.All && err && <Result status="error" title="加载章节列表失败" subTitle={err} extra={<Button type="primary" onClick={handle}>重试</Button>} />}
+            {bookStatus.chapterShowMode != ChapterShowMode.All && !bookStatus.chapterLists && !err && <Skeleton active />}
             {vols.length > 0 && <VolumesList bookId={bookInfo.id} volumes={vols} />}
         </div>
     );

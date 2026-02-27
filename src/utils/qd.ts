@@ -3,6 +3,13 @@ import type { QdChapterInfo, QdChapterSimpleInfo } from "../types";
 import { get_chapter_content, toHex } from "../utils";
 import type { Chapter, Volume } from "../qdtypes";
 
+export enum ChapterShowMode {
+    All,
+    SavedOnly,
+    UnsavedOnly,
+}
+
+
 export function hash_qdchapter_info(info: QdChapterInfo): string {
     const encoder = new TextEncoder();
     const h = new SHA256();
@@ -29,9 +36,9 @@ export function hash_qdchapter_info(info: QdChapterInfo): string {
     return toHex(hash);
 }
 
-export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Volume[], keep=true): Volume[] {
+export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Volume[], keepMode: ChapterShowMode): Volume[] {
     const vols: Volume[] = [];
-    if (keep) {
+    if (keepMode == ChapterShowMode.All) {
         const volMap: Map<number, Chapter> = new Map();
         for (const vo of volumes) {
             const vol = structuredClone(vo);
@@ -61,10 +68,21 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
                 isVip: false,
             });
         }
-    } else {
+    } else if (keepMode == ChapterShowMode.SavedOnly) {
         const chIds = new Set(chapterLists.map(ch => ch.id));
         for (const vol of volumes) {
             const newChs = vol.chapters.filter(ch => chIds.has(ch.id));
+            if (newChs.length > 0) {
+                vols.push({
+                    ...vol,
+                    chapters: newChs,
+                });
+            }
+        }
+    } else if (keepMode == ChapterShowMode.UnsavedOnly) {
+        const chIds = new Set(chapterLists.map(ch => ch.id));
+        for (const vol of volumes) {
+            const newChs = vol.chapters.filter(ch => !chIds.has(ch.id));
             if (newChs.length > 0) {
                 vols.push({
                     ...vol,

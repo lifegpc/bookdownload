@@ -6,7 +6,7 @@ import { useDb } from "../dbProvider";
 import type { QdChapterInfo } from "../../types";
 import type { Volume } from "../../qdtypes";
 import { useBookInfo } from "./BookInfoProvider";
-import { get_new_volumes } from "../../utils/qd";
+import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
 import VolumesList from "./VolumesList";
 import styles from './BookChapter.module.css';
 import ChapterEditor from "./ChapterEditor";
@@ -79,8 +79,8 @@ export default function BookChapter() {
     }
     let vols: Volume[] = bookInfo.volumes;
     if (bookStatus.chapterLists) {
-        vols = get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, !bookStatus.showSavedOnly);
-    } else if (bookStatus.showSavedOnly) {
+        vols = get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, bookStatus.chapterShowMode);
+    } else if (bookStatus.chapterShowMode != ChapterShowMode.All) {
         vols = [];
     }
     return (<>
@@ -90,8 +90,8 @@ export default function BookChapter() {
             }, 1);
         }}>
             <Splitter.Panel min='20%' max='40%' defaultSize='30%' collapsible className={styles.chs}>
-                {bookStatus.showSavedOnly && listErr && <Result status="error" title="加载章节列表失败" subTitle={listErr} extra={<Button type="primary" onClick={handle_list_load}>重试</Button>} />}
-                {bookStatus.showSavedOnly && !bookStatus.chapterLists && !listErr && <Skeleton active />}
+                {bookStatus.chapterShowMode != ChapterShowMode.All && listErr && <Result status="error" title="加载章节列表失败" subTitle={listErr} extra={<Button type="primary" onClick={handle_list_load}>重试</Button>} />}
+                {bookStatus.chapterShowMode != ChapterShowMode.All && !bookStatus.chapterLists && !listErr && <Skeleton active />}
                 {vols.length > 0 && <VolumesList bookId={bookInfo.id} volumes={vols} oneLine />}
             </Splitter.Panel>
             <Splitter.Panel className={styles.chc}>

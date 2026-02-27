@@ -3,15 +3,16 @@ import { QdChapterSimpleInfo } from "../../types";
 import { Db } from "../../db/interfaces";
 import { useOutletContext } from "react-router";
 import type { ItemType } from "antd/es/breadcrumb/Breadcrumb";
+import { ChapterShowMode } from "../../utils/qd";
 
 export type BookStatus = {
-    showSavedOnly: boolean;
+    chapterShowMode: ChapterShowMode;
     chapterLists?: QdChapterSimpleInfo[];
 }
 
 export function createBookStatus(): BookStatus {
     return {
-        showSavedOnly: false,
+        chapterShowMode: ChapterShowMode.All,
     }
 }
 
