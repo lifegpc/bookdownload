@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import colors from 'colors';
 import esbuildPluginEslint from 'esbuild-plugin-eslint';
+import { svgrPlugin } from 'esbuild-svgr-plugin'
 
 const is_dev = process.argv.includes('--dev');
 const is_dbg = process.argv.includes('--debug');
@@ -45,6 +46,7 @@ function displayResult(result) {
 
 const plugins = [
     esbuildPluginEslint(),
+    svgrPlugin(),
 ];
 
 async function build(name, is_content_script = true) {

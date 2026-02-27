@@ -8,7 +8,20 @@
     width: 100%;
 }
 
+.action {
+    margin-left: auto;
+}
+
 .saved {
     margin-left: auto;
     color: green;
+}
+
+.open {
+    color: gray;
+    cursor: pointer;
+}
+
+.open:hover {
+    color: inherit;
 }

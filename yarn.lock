@@ -297,6 +297,11 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.4.3.tgz#c2b9d2e374ee62c586d3adbea87199b1d7a7a6ba"
   integrity sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==
 
+"@material-icons/svg@^1.0.33":
+  version "1.0.33"
+  resolved "https://registry.yarnpkg.com/@material-icons/svg/-/svg-1.0.33.tgz#c3f4a5395c3b2267ce032081e9fe426995442ced"
+  integrity sha512-sYXcybBWH3rNijK1D6Dv1Se/aZ7OAC2cCNkn4HiZOXQwkswtRVoDqHPw+GfsBoIC70UintfPXUsmiuaxMicWtw==
+
 "@rc-component/async-validator@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@rc-component/async-validator/-/async-validator-5.1.0.tgz#e81f31e676d9cadc71e4310bbf1749c7a5882291"
@@ -1363,6 +1368,11 @@ esbuild-plugin-eslint@^0.3.12:
   version "0.3.12"
   resolved "https://registry.yarnpkg.com/esbuild-plugin-eslint/-/esbuild-plugin-eslint-0.3.12.tgz#729cc6661acc5f3640078163e32e76efdf687129"
   integrity sha512-n37Nn6vmh2tdGMnm6GZebiYJDrqERAReyvLFwdCWCw15ZvAu251i6cIeJWoVB8AiS+j3N97gylvf58ysIwii4g==
+
+esbuild-svgr-plugin@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/esbuild-svgr-plugin/-/esbuild-svgr-plugin-0.2.0.tgz#08319365a1ef642ce16c3d83c847ff31370dc4e5"
+  integrity sha512-2+bY5KBjBieCBcsETx3wrmbsTAgRz2NZvRAgHl/xHqUG4g0E7k3J1/uumP0LwBGuOU3xKdDBjccU8Me/sKWL6A==
 
 esbuild@^0.27.3:
   version "0.27.3"

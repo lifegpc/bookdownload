@@ -2,6 +2,7 @@
   "name": "bookdownload",
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
+    "@material-icons/svg": "^1.0.33",
     "@stablelib/sha256": "^2.0.1",
     "@types/chrome": "^0.1.36",
     "@types/react": "^19.2.14",
@@ -10,6 +11,7 @@
     "colors": "^1.4.0",
     "esbuild": "^0.27.3",
     "esbuild-plugin-eslint": "^0.3.12",
+    "esbuild-svgr-plugin": "^0.2.0",
     "eslint": "9",
     "eslint-plugin-react": "^7.37.5",
     "lodash.isequal": "^4.5.0",
@@ -29,5 +31,6 @@
     "buildrel": "node build.js",
     "lint": "eslint src"
   },
-  "type": "module"
+  "type": "module",
+  "types": "./data.d.ts"
 }
