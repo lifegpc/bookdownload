@@ -30,6 +30,12 @@ export type QdChapterSimpleInfo = {
     time: number;
 }
 
+export type QdChapterHistoryInfo = {
+    primaryKey: unknown;
+    name: string;
+    time: number;
+}
+
 export type QdBookInfo = {
     bookInfo: QdTypes.BookGData;
     bookName: string;

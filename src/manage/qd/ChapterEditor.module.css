@@ -95,3 +95,32 @@
 .reset:hover {
     color: #4096ff;
 }
+
+.showHistory {
+    color: gray;
+    cursor: pointer;
+    margin: 8px;
+}
+
+.showHistory:hover {
+    color: #4096ff;
+}
+
+.showHistory.disabled {
+    color: lightgray;
+    cursor: not-allowed;
+}
+
+.showHistory.disabled:hover {
+    color: lightgray;
+}
+
+.history .item {
+    width: 100%;
+    margin: 0 8px;
+}
+
+.history .current {
+    color: #4096ff;
+    margin-left: auto;
+}

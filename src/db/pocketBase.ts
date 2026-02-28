@@ -2,7 +2,7 @@ import type { Db } from "./interfaces";
 import PocketBase from "pocketbase";
 import type { CollectionModel } from "pocketbase";
 import { PocketBaseConfig } from "../config";
-import { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo } from "../types";
+import { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo, QdChapterHistoryInfo } from "../types";
 import { hash_qdchapter_info } from "../utils/qd";
 import { loadConfig, saveConfig } from "../utils";
 
@@ -279,17 +279,43 @@ export class PocketBaseDb implements Db {
         const k = String(key);
         const record = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
             filter: `id = "${k}"`,
-            fields: 'data',
+            fields: 'data,time',
         });
-        return record.totalItems > 0 ? record.items[0].data : undefined;
+        const re = record.totalItems > 0 ? record.items[0].data : undefined;
+        if (re) {
+            re.time = record.items[0].time;
+        }
+        return re;
+    }
+    async getQdChapterHistory(chapterId: number): Promise<QdChapterHistoryInfo[]> {
+        const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getFullList({
+            filter: `chapterId = ${chapterId}`,
+            fields: 'id,time,data.chapterInfo.chapterName',
+            sort: '-time',
+        });
+        return records.map(item => ({
+            primaryKey: item.id,
+            name: item.data.chapterInfo.chapterName,
+            time: item.time,
+        }));
     }
     async getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined> {
         const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
             filter: `chapterId = ${id}`,
-            fields: 'data',
+            fields: 'data,time',
             sort: '-time',
         });
-        return records.totalItems > 0 ? records.items[0].data : undefined;
+        const record = records.totalItems > 0 ? records.items[0].data : undefined;
+        if (record) {
+            record.time = records.items[0].time;
+        }
+        return record;
+    }
+    async setAsLatestQdChapter(key: unknown): Promise<unknown> {
+        await this.client.collection(`${this.cfg.prefix}qd_chapters`).update(String(key), {
+            time: Date.now(),
+        });
+        return key;
     }
     close(): void {
         this.client.cancelAllRequests();

@@ -1,7 +1,7 @@
 import { DbConfig, DbType } from "../config";
 import { IndexedDb } from "./indexedDb";
 import { PocketBaseDb } from "./pocketBase";
-import type { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo } from "../types";
+import type { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo, QdChapterHistoryInfo } from "../types";
 
 export interface Db {
     init(): Promise<void>;
@@ -18,7 +18,7 @@ export interface Db {
     /**
      * Update chapter info in database.
      * @param info The chapter info to update. time will be updated to current time in database implementation so mannual update is not needed. Primary key was chapterId, bookId and time.
-     * @return Primary key of the updated chapter, which is determined by the database implementation.
+     * @returns Primary key of the updated chapter, which is determined by the database implementation.
      */
     updateQdChapter(info: QdChapterInfo): Promise<unknown>;
     getQdBook(id: number): Promise<QdBookInfo | undefined>;
@@ -35,10 +35,22 @@ export interface Db {
      */
     getQdChapter(key: unknown): Promise<QdChapterInfo | undefined>;
     /**
+     * Get chapter history by chapter ID. if not found, return empty array.
+     * @param chapterId Chapter ID
+     * @returns Chapter history, sorted by time in descending order (latest first)
+     */
+    getQdChapterHistory(chapterId: number): Promise<QdChapterHistoryInfo[]>;
+    /**
      * Get the latest (which time is biggest) chapter of a chapter. if not found, return undefined.
      * @param id Chapter ID
      */
     getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined>;
+    /**
+     * Set the latest chapter by primary key. This function will update the time of the chapter.
+     * @param key Primary key of the chapter, which is determined by the database implementation.
+     * @returns Primary key of the chapter set as latest, which is determined by the database implementation. if the chapter is not found, return undefined.
+     */
+    setAsLatestQdChapter(key: unknown): Promise<unknown>;
     close(): void;
 }
 

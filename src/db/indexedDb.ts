@@ -1,5 +1,5 @@
 import { IndexedDbConfig } from "../config";
-import type { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo } from "../types";
+import type { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo, QdChapterHistoryInfo } from "../types";
 import { compress, decompress, isServiceWorker } from "../utils";
 import { hash_qdchapter_info } from "../utils/qd";
 import type { Db } from "./interfaces";
@@ -105,12 +105,12 @@ function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, key: ID
     });
 }
 
-function get_datas_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void, key?: IDBValidKey | IDBKeyRange, index?: string): Promise<U[]> {
+function get_datas_with_convert<T, U>(db: IDBDatabase, storeName: string, convert: (key: IDBValidKey, data: T, list: U[]) => Promise<void> | void, key?: IDBValidKey | IDBKeyRange, index?: string, direction?: IDBCursorDirection): Promise<U[]> {
     return new Promise<U[]>((resolve, reject) => {
         const list: U[] = [];
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
-        const req = index ? store.index(index).openCursor(key) : store.openCursor(key);
+        const req = index ? store.index(index).openCursor(key, direction) : store.openCursor(key, direction);
         req.onsuccess = () => {
             const cursor = req.result;
             if (cursor) {
@@ -371,6 +371,20 @@ export class IndexedDb implements Db {
         }
         return data;
     }
+    async getQdChapterHistory(chapterId: number): Promise<QdChapterHistoryInfo[]> {
+        return await get_datas_with_convert<CompressedQdChapterInfo | QdChapterInfo, QdChapterHistoryInfo>(this.qddb, 'chapters', async (key, data, list) => {
+            if ('compressed' in data) {
+                const decompressed = await decompress(data.compressed);
+                const decoded = new TextDecoder().decode(decompressed);
+                data = JSON.parse(decoded) as QdChapterInfo;
+            }
+            list.push({
+                primaryKey: key,
+                name: data.chapterInfo.chapterName,
+                time: data.time,
+            })
+        }, chapterId, 'id', 'prev');
+    }
     async getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined> {
         return await get_data_with_convert<CompressedQdChapterInfo | QdChapterInfo, QdChapterInfo>(this.qddb, 'chapters', id, async (key, data) => {
             if ('compressed' in data) {
@@ -379,7 +393,32 @@ export class IndexedDb implements Db {
                 return JSON.parse(decoded) as QdChapterInfo;
             }
             return data;
-        }, 'id', 'prevunique');
+        }, 'id', 'prev');
+    }
+    async setAsLatestQdChapter(key: unknown): Promise<unknown> {
+        const chapter = await this.getQdChapter(key);
+        if (!chapter) {
+            return undefined;
+        }
+        chapter.time = Date.now();
+        const hash = hash_qdchapter_info(chapter);
+        if (this.compress) {
+            chapter.hash = undefined;
+            const data = JSON.stringify(chapter);
+            const encoded = new TextEncoder().encode(data);
+            const compressed = await compress(encoded);
+            const compressedInfo: CompressedQdChapterInfo = {
+                compressed,
+                bookId: chapter.bookId,
+                id: chapter.id,
+                time: chapter.time,
+                hash,
+            }
+            return await save_data(this.qddb, 'chapters', compressedInfo);
+        } else {
+            chapter.hash = hash;
+            return await save_data(this.qddb, 'chapters', chapter);
+        }
     }
     close() {
         this.qddb.close();
