@@ -8,11 +8,13 @@ import { ChapterShowMode } from "../../utils/qd";
 export type BookStatus = {
     chapterShowMode: ChapterShowMode;
     chapterLists?: QdChapterSimpleInfo[];
+    wordWrap: boolean;
 }
 
 export function createBookStatus(): BookStatus {
     return {
         chapterShowMode: ChapterShowMode.All,
+        wordWrap: true,
     }
 }
 

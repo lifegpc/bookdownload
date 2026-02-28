@@ -1,0 +1,25 @@
+.container {
+    height: 100%;
+}
+
+.header {
+    align-items: center;
+}
+
+.name {
+    align-items: center;
+    display: flex;
+    margin-top: 8px;
+    margin-left: 16px;
+}
+
+.name .save {
+    position: relative;
+    top: 3px;
+}
+
+.editorWrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
