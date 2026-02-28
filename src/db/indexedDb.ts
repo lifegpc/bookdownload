@@ -25,6 +25,20 @@ function save_data<T>(db: IDBDatabase, storeName: string, data: T, key?: IDBVali
     });
 }
 
+function delete_data(db: IDBDatabase, storeName: string, key: IDBValidKey) {
+    return new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const req = store.delete(key);
+        req.onsuccess = () => {
+            resolve();
+        }
+        req.onerror = () => {
+            reject(req.error);
+        }
+    });
+}
+
 type QdChapterKey = [number, number, number];
 type QdChapterHashKey = [number, number, string];
 
@@ -281,6 +295,29 @@ export class IndexedDb implements Db {
     }
     async saveQdBook(info: QdBookInfo) {
         await save_data(this.qddb, 'books', info);
+    }
+    async updateQdChapter(info: QdChapterInfo): Promise<unknown> {
+        const key: QdChapterKey = [info.id, info.bookId, info.time];
+        await delete_data(this.qddb, 'chapters', key);
+        info.time = Date.now();
+        const hash = hash_qdchapter_info(info);
+        if (this.compress) {
+            info.hash = undefined;
+            const data = JSON.stringify(info);
+            const encoded = new TextEncoder().encode(data);
+            const compressed = await compress(encoded);
+            const compressedInfo: CompressedQdChapterInfo = {
+                compressed,
+                bookId: info.bookId,
+                id: info.id,
+                time: info.time,
+                hash,
+            }
+            return await save_data(this.qddb, 'chapters', compressedInfo);
+        } else {
+            info.hash = hash;
+            return await save_data(this.qddb, 'chapters', info);
+        }
     }
     async getQdBooks(page: number, pageSize: number): Promise<PagedData<QdBookInfo>> {
         return await get_paged_data(this.qddb, 'books', page, pageSize);

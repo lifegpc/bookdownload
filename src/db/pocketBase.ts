@@ -54,6 +54,7 @@ const QD_CHAPTERS_INDEXES = [
     'CREATE INDEX `idx_{name}_cid` ON `{name}` (chapterId)',
     'CREATE INDEX `idx_{name}_bid` ON `{name}` (bookId)',
     'CREATE INDEX `idx_{name}_hash` ON `{name}` (chapterId,bookId,hash)',
+    'CREATE INDEX `idx_{name}_time` ON `{name}` (chapterId,bookId,time)',
 ]
 const QD_BOOKS_INDEXES = [
     'CREATE UNIQUE INDEX `idx_{name}_bid` ON `{name}` (bookId)',
@@ -184,6 +185,25 @@ export class PocketBaseDb implements Db {
                 data: info,
             });
         }
+    }
+    async updateQdChapter(info: QdChapterInfo): Promise<unknown> {
+        const data = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
+            filter: `chapterId = ${info.id} && bookId = ${info.bookId} && time = ${info.time}`,
+            fields: 'id',
+        });
+        const id = data.totalItems > 0 ? data.items[0].id : null;
+        if (!id) {
+            throw new Error(`Chapter ${info.id} of book ${info.bookId} with time ${info.time} not found in database, cannot update`);
+        }
+        const hash = hash_qdchapter_info(info);
+        info.hash = undefined;
+        info.time = Date.now();
+        await this.client.collection(`${this.cfg.prefix}qd_chapters`).update(id, {
+            hash: hash,
+            data: info,
+            time: info.time,
+        });
+        return id;
     }
     async getQdBookId(id: number): Promise<string | null> {
         const records = await this.client.collection(`${this.cfg.prefix}qd_books`).getList(1, 1, {

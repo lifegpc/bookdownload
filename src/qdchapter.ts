@@ -2,7 +2,7 @@ import type { PageContext } from './qdtypes';
 import type { Message, SendMessage } from './types';
 import { QdConfig } from './config';
 import { get_chapter_content } from './utils';
-import Notification from './components/Notifiction';
+import Notification from './components/Notification';
 
 function getPageData(): PageContext | undefined {
     const data = document.getElementById('vite-plugin-ssr_pageContext')?.innerHTML;

@@ -61,3 +61,37 @@
     overflow: hidden;
     position: relative;
 }
+
+.action {
+    margin-left: auto;
+    align-items: center;
+}
+
+.chapterSave {
+    color: gray;
+    cursor: pointer;
+    margin: 8px;
+}
+
+.chapterSave:hover {
+    color: #4096ff;
+}
+
+.chapterSave.disabled {
+    color: lightgray;
+    cursor: not-allowed;
+}
+
+.chapterSave.disabled:hover {
+    color: lightgray;
+}
+
+.reset {
+    color: gray;
+    cursor: pointer;
+    margin: 8px;
+}
+
+.reset:hover {
+    color: #4096ff;
+}

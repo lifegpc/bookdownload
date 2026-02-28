@@ -100,7 +100,7 @@ export default function BookChapter() {
                     title="数据加载失败"
                     subTitle={err}
                     extra={<Button type="primary" onClick={() => { setErr(null); handle_load(); }}>重试</Button>} />}
-                {chapter && <ChapterEditor ref={editorRef} chapter={chapter} />}
+                {chapter && <ChapterEditor ref={editorRef} chapter={chapter} onChapterSaveAs={setChapter} />}
                 {!chapter && !err && <Skeleton active />}
             </Splitter.Panel>
         </Splitter>

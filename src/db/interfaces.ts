@@ -15,6 +15,12 @@ export interface Db {
      * @param info Book info to save. if id is matched in the database, update the existing record.
      */
     saveQdBook(info: QdBookInfo): Promise<void>;
+    /**
+     * Update chapter info in database.
+     * @param info The chapter info to update. time will be updated to current time in database implementation so mannual update is not needed. Primary key was chapterId, bookId and time.
+     * @return Primary key of the updated chapter, which is determined by the database implementation.
+     */
+    updateQdChapter(info: QdChapterInfo): Promise<unknown>;
     getQdBook(id: number): Promise<QdBookInfo | undefined>;
     getQdBooks(page: number, pageSize: number): Promise<PagedData<QdBookInfo>>;
     /**
