@@ -9,16 +9,54 @@
 .name {
     align-items: center;
     display: flex;
-    margin-top: 8px;
-    margin-left: 16px;
+    margin: 8px!important;
 }
 
-.name .save {
+.nameContainer.editing .name {
+    width: 100%;
+    left: 0;
+    top: 0;
+}
+
+.nameContainer.editing .name textarea:global(.ant-input) {
+    padding-right: 40px;
+    width: 100%;
+}
+
+.nameSave {
+    position: absolute;
+    right: 14px;
+    cursor: pointer;
+    color: gray;
+}
+
+.nameSave:hover {
+    color: #4096ff;
+}
+
+.nameClose {
+    position: absolute;
+    right: 34px;
+    cursor: pointer;
+    color: gray;
+}
+
+.nameClose:hover {
+    color: #4096ff;
+}
+
+.nameContainer {
     position: relative;
-    top: 3px;
+    align-items: center;
 }
 
-.editorWrapper {
+.nameContainer.editing {
+    min-width: 200px;
+    width: calc(100% - 200px);
+    max-width: 500px;
+}
+
+.editor {
     flex: 1;
     overflow: hidden;
     position: relative;
