@@ -20,6 +20,7 @@ export interface ChapterEditorProps {
     chapter: QdChapterInfo;
     onChapterSaveAs?: (chapter: QdChapterInfo) => void;
     history?: boolean;
+    onLoadHistoryItem?: (item: QdChapterHistoryInfo) => void;
 }
 
 export interface ChapterEditorState {
@@ -61,6 +62,14 @@ export default class ChapterEditor extends Component<ChapterEditorProps, Chapter
                 history: undefined,
                 loadingHistory: false,
                 loadHistoryFailed: false,
+            });
+        } else if (prevProps.chapter.id === this.props.chapter.id && prevProps.chapter.time !== this.props.chapter.time) {
+            this.setState({
+                content: this.props.chapter.contents ? this.props.chapter.contents.join('\n') : this.props.chapter.chapterInfo.content,
+                chapterName: this.props.chapter.chapterInfo.chapterName,
+                editingChapterName: false,
+                eChapterName: undefined,
+                changed: false,
             });
         } else if (prevProps.history && !this.props.history) {
             this.setState({ history: undefined, loadingHistory: false, loadHistoryFailed: false });
@@ -188,6 +197,9 @@ export default class ChapterEditor extends Component<ChapterEditorProps, Chapter
                                                     Notification(`设为最新版本失败: ${errmsg}`, 'error');
                                                 });
                                             }}>设为最新版本</Button>}
+                                            {this.props.onLoadHistoryItem && item.time !== this.props.chapter.time && <Button onClick={() => {
+                                                this.props.onLoadHistoryItem?.(item);
+                                            }}>加载</Button>}
                                         </Flex>
                                     </Card>
                                 ))}

@@ -371,6 +371,19 @@ export class IndexedDb implements Db {
         }
         return data;
     }
+    async getQdChapterByTime(bookId: number, id: number, time: number): Promise<QdChapterInfo | undefined> {
+        const key: QdChapterKey = [id, bookId, time];
+        const data = await get_data<CompressedQdChapterInfo | QdChapterInfo>(this.qddb, 'chapters', key);
+        if (!data) {
+            return undefined;
+        }
+        if ('compressed' in data) {
+            const decompressed = await decompress(data.compressed);
+            const decoded = new TextDecoder().decode(decompressed);
+            return JSON.parse(decoded) as QdChapterInfo;
+        }
+        return data;
+    }
     async getQdChapterHistory(chapterId: number): Promise<QdChapterHistoryInfo[]> {
         return await get_datas_with_convert<CompressedQdChapterInfo | QdChapterInfo, QdChapterHistoryInfo>(this.qddb, 'chapters', async (key, data, list) => {
             if ('compressed' in data) {

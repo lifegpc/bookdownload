@@ -35,6 +35,14 @@ export interface Db {
      */
     getQdChapter(key: unknown): Promise<QdChapterInfo | undefined>;
     /**
+     * Get chapter info by book ID, chapter ID and time. if not found, return undefined.
+     * @param bookId Book ID
+     * @param id Chapter ID
+     * @param time Timestamp of the chapter
+     * @returns Chapter info if found, otherwise undefined
+     */
+    getQdChapterByTime(bookId: number, id: number, time: number): Promise<QdChapterInfo | undefined>;
+    /**
      * Get chapter history by chapter ID. if not found, return empty array.
      * @param chapterId Chapter ID
      * @returns Chapter history, sorted by time in descending order (latest first)

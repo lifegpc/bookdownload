@@ -287,6 +287,17 @@ export class PocketBaseDb implements Db {
         }
         return re;
     }
+    async getQdChapterByTime(bookId: number, id: number, time: number): Promise<QdChapterInfo | undefined> {
+        const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
+            filter: `bookId = ${bookId} && chapterId = ${id} && time = ${time}`,
+            fields: 'data,time',
+        });
+        const re = records.totalItems > 0 ? records.items[0].data : undefined;
+        if (re) {
+            re.time = records.items[0].time;
+        }
+        return re;
+    }
     async getQdChapterHistory(chapterId: number): Promise<QdChapterHistoryInfo[]> {
         const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getFullList({
             filter: `chapterId = ${chapterId}`,
