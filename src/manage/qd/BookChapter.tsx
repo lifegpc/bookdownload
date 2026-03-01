@@ -132,7 +132,7 @@ export default function BookChapter() {
             <Splitter.Panel min='20%' max='40%' defaultSize='30%' collapsible className={styles.chs}>
                 {bookStatus.chapterShowMode != ChapterShowMode.All && listErr && <Result status="error" title="加载章节列表失败" subTitle={listErr} extra={<Button type="primary" onClick={handle_list_load}>重试</Button>} />}
                 {bookStatus.chapterShowMode != ChapterShowMode.All && !bookStatus.chapterLists && !listErr && <Skeleton active />}
-                {vols.length > 0 && <VolumesList bookId={bookInfo.id} volumes={vols} oneLine key={bookInfo.id} />}
+                {vols.length > 0 && <VolumesList bookId={bookInfo.id} volumes={vols} oneLine key={bookInfo.id} current={id} />}
             </Splitter.Panel>
             <Splitter.Panel className={styles.chc}>
                 {err && <Result

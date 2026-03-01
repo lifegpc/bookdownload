@@ -1,3 +1,16 @@
+.c {
+    position: relative;
+    overflow-y: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cl {
+    overflow-y: auto;
+    flex: 1;
+}
+
 .ch {
     margin: 4px 8px;
     width: min(calc((100% - 40px) / 4), 300px);
@@ -24,4 +37,14 @@
 
 .open:hover {
     color: inherit;
+}
+
+.current {
+    position: absolute;
+    right: 30px;
+    bottom: 50px;
+    padding: 4px;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
 }
