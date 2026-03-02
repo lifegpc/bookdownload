@@ -30,6 +30,22 @@ export async function sendMessageToTab(tabId: number, message: SendMessage): Pro
     return await chrome.tabs.sendMessage(tabId, message);
 }
 
+export async function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function waitTabLoaded(tabId: number): Promise<void> {
+    return new Promise((resolve) => {
+        function listener(updatedTabId: number, changeInfo: chrome.tabs.OnUpdatedInfo) {
+            if (updatedTabId === tabId && changeInfo.status === 'complete') {
+                chrome.tabs.onUpdated.removeListener(listener);
+                resolve();
+            }
+        }
+        chrome.tabs.onUpdated.addListener(listener);
+    });
+}
+
 export async function getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tabs.length === 0) {

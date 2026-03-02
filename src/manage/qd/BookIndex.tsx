@@ -8,6 +8,7 @@ import { useDb } from "../dbProvider";
 import type { Volume } from "../../qdtypes";
 import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
 import ShowMode from "./ShowMode";
+import { sendMessageToTab, waitTabLoaded } from "../../utils";
 
 const { Paragraph, Link } = Typography;
 
@@ -29,6 +30,17 @@ export default function BookIndex() {
         loadChapterListsIfNeeded(bookInfo.id, bookStatus, setBookStatus, db).catch(e => {
             console.log(e);
             setErr(e instanceof Error ? e.message : String(e));
+        });
+    }
+    async function handleSaveAsEpub() {
+        const url = chrome.runtime.getURL('dist/download.html');
+        const tab = await chrome.tabs.create({ url });
+        if (tab.status !== 'complete') {
+            await waitTabLoaded(tab.id!);
+        }
+        await sendMessageToTab(tab.id!, {
+            type: 'DownloadQdBookAsEpub',
+            info: bookInfo,
         });
     }
     useEffect(() => {
@@ -62,6 +74,9 @@ export default function BookIndex() {
                         <>{line}<br /></>
                     ))}</Paragraph>
                 </Space>
+            </Flex>
+            <Flex align="cenrer">
+                <Button type="primary" onClick={handleSaveAsEpub}>保存为EPUB</Button>
             </Flex>
             <Affix offsetTop={10}>
                 <Flex justify="flex-end" className={styles.affix}>

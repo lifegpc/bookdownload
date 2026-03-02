@@ -50,12 +50,21 @@ export type QdBookInfo = {
     volumes: QdTypes.Volume[];
 }
 
+export interface QdBookDownloadOptions {
+    skipUnsavedChapters?: boolean;
+    skipNotBoughtChapters?: boolean;
+}
+
 export type SendMessageMap = {
     GetQdChapterInfo: {};
     GetQdBookInfo: {};
     SaveQdChapterInfo: {
         info: QdChapterInfo;
     };
+    DownloadQdBookAsEpub: {
+        info: QdBookInfo;
+        options?: QdBookDownloadOptions;
+    }
 }
 
 export type SendMessage = DiscriminatedUnion<"type", SendMessageMap>;

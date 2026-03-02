@@ -117,6 +117,9 @@ export class PocketBaseDb implements Db {
             }
         }
     }
+    batchSize(): number | undefined {
+        return this.cfg.batch ? this.cfg.batchSize : undefined;
+    }
     async createCollection(name: string, fields: Record<string, unknown>[], indexes: string[]) {
         const nindexes = indexes.map(i => i.replaceAll('{name}', `${this.cfg.prefix}${name}`));
         await this.client.collections.create({
@@ -290,6 +293,23 @@ export class PocketBaseDb implements Db {
             re.time = record.items[0].time;
         }
         return re;
+    }
+    async getQdChaptersBatch(keys: unknown[]): Promise<(QdChapterInfo | undefined)[]> {
+        if (!this.cfg.batch) {
+            throw new Error('Batch operation is not enabled in PocketBaseConfig');
+        }
+        const filter = keys.map(k => `id = "${k}"`).join(' || ');
+        const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getFullList({
+            filter,
+            fields: 'id,data,time',
+        });
+        const map: Map<string, QdChapterInfo> = new Map();
+        for (const item of records) {
+            const data = item.data;
+            data.time = item.time;
+            map.set(item.id, data);
+        }
+        return keys.map(k => map.get(String(k)));
     }
     async getQdChapterByTime(bookId: number, id: number, time: number): Promise<QdChapterInfo | undefined> {
         const records = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {

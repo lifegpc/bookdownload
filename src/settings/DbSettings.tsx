@@ -1,4 +1,4 @@
-import { FloatButton, Affix, Button, Space, Select, Input, Typography, Alert } from "antd";
+import { FloatButton, Affix, Button, Space, Select, Input, Typography, Alert, InputNumber } from "antd";
 import { SaveTwoTone, SaveOutlined, SyncOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { DbConfig, DbType, IndexedDbConfig, PocketBaseConfig } from "../config";
@@ -35,11 +35,15 @@ function PocketBaseSettings({config}: { config: PocketBaseConfig }) {
     const [prefix, setPrefix] = useState('');
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<string | null>(null);
+    const [batch, setBatch] = useState(false);
+    const [batchSize, setBatchSize] = useState(50);
     useEffect(() => {
         setUrl(config.url);
         setUsername(config.username);
         setPassword(config.password);
         setPrefix(config.prefix);
+        setBatch(config.batch);
+        setBatchSize(config.batchSize);
     }, [config]);
     async function handleTestConnection() {
         setTesting(true);
@@ -69,6 +73,14 @@ function PocketBaseSettings({config}: { config: PocketBaseConfig }) {
         setPrefix(value);
         config.prefix = value;
     }
+    function handleBatchChange(value: boolean) {
+        setBatch(value);
+        config.batch = value;
+    }
+    function handleBatchSizeChange(value: number) {
+        setBatchSize(value);
+        config.batchSize = value;
+    }
     return (<Space orientation="vertical">
         <Text>服务器地址</Text>
         <Input placeholder="服务器地址" value={url} onChange={e => handleUrlChange(e.target.value)} allowClear />
@@ -80,6 +92,10 @@ function PocketBaseSettings({config}: { config: PocketBaseConfig }) {
         <Text>前缀（可选）</Text>
         <Input placeholder="前缀（可选）" value={prefix} onChange={e => handlePrefixChange(e.target.value)} allowClear />
         <Button onClick={handleTestConnection} disabled={testing}>{testing ? "测试中..." : "测试连接"}</Button>
+        <Alert title="部分批处理功能需要在服务器打开Batch API后才能使用" type="info" />
+        <SwitchLabel label="启用批处理" checked={batch} onChange={handleBatchChange} />
+        <Text>批处理大小</Text>
+        <InputNumber min={1} value={batchSize} onChange={value => handleBatchSizeChange(value ?? 50)} />
         {testResult && <div>{testResult}</div>}
     </Space>)
 }

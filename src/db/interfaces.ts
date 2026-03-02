@@ -6,6 +6,10 @@ import type { QdChapterInfo, QdBookInfo, PagedData, QdChapterSimpleInfo, QdChapt
 export interface Db {
     init(): Promise<void>;
     /**
+     * Whether the database implementation supports batch operation. If true, return batch size if batch operation is enabled, otherwise return undefined.
+     */
+    batchSize(): number | undefined;
+    /**
      * Save chapter info to database.
      * @param info Chapter info to save. if id, bookId and hash are matched in the database, skip saving.
      */
@@ -34,6 +38,10 @@ export interface Db {
      * @param key Primary key of the chapter, which is determined by the database implementation.
      */
     getQdChapter(key: unknown): Promise<QdChapterInfo | undefined>;
+    /**
+     * See @function getQdChapter. This function is used to get multiple chapters in batch. if a chapter is not found, the corresponding position in the returned array will be undefined.
+     */
+    getQdChaptersBatch(keys: unknown[]): Promise<(QdChapterInfo | undefined)[]>;
     /**
      * Get chapter info by book ID, chapter ID and time. if not found, return undefined.
      * @param bookId Book ID

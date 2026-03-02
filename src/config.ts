@@ -41,6 +41,8 @@ type PocketBaseConfigData = {
     username?: string;
     password?: string;
     prefix?: string;
+    batch?: boolean;
+    batchSize?: number;
 }
 
 export enum DbType {
@@ -95,6 +97,18 @@ export class PocketBaseConfig {
     }
     set prefix(value: string) {
         this.config.prefix = value;
+    }
+    get batch(): boolean {
+        return this.config.batch ?? false;
+    }
+    set batch(value: boolean) {
+        this.config.batch = value;
+    }
+    get batchSize(): number {
+        return this.config.batchSize ?? 50;
+    }
+    set batchSize(value: number) {
+        this.config.batchSize = value;
     }
 }
 

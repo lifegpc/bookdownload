@@ -267,6 +267,9 @@ export class IndexedDb implements Db {
         if (!isServiceWorker) make_storage_persist();
         await this.init_qddb();
     }
+    batchSize(): number | undefined {
+        return;
+    }
     async saveQdChapter(info: QdChapterInfo) {
         const hash = hash_qdchapter_info(info);
         const key: QdChapterHashKey = [info.id, info.bookId, hash];
@@ -374,6 +377,9 @@ export class IndexedDb implements Db {
             return JSON.parse(decoded) as QdChapterInfo;
         }
         return data;
+    }
+    async getQdChaptersBatch(_keys: unknown[]): Promise<(QdChapterInfo | undefined)[]> {
+        throw new Error('Batch operation is not supported in IndexedDb');
     }
     async getQdChapterByTime(bookId: number, id: number, time: number): Promise<QdChapterInfo | undefined> {
         const key: QdChapterKey = [id, bookId, time];
