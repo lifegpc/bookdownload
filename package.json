@@ -29,8 +29,12 @@
     "build": "node build.js --dev",
     "builddbg": "node build.js --dev --debug",
     "buildrel": "node build.js",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "node build_test.js && node --enable-source-maps test.cjs"
   },
   "type": "module",
-  "types": "./data.d.ts"
+  "types": "./data.d.ts",
+  "devDependencies": {
+    "expect": "^30.2.0"
+  }
 }

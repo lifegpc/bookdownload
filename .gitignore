@@ -3,3 +3,6 @@ dist/
 *.crx
 *.pem
 *.zip
+test.cjs
+test.cjs.map
+src/test.ts

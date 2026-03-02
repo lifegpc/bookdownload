@@ -79,6 +79,28 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
                 });
             }
         }
+        for (const vol of vols) {
+            for (const ch of vol.chapters) {
+                chIds.delete(ch.id);
+            }
+        }
+        if (chIds.size > 0) {
+            const volCh: Chapter[] = [];
+            for (const ch of chapterLists) {
+                if (chIds.has(ch.id)) {
+                    volCh.push({
+                        id: ch.id,
+                        name: ch.name,
+                    });
+                }
+            }
+            vols.unshift({
+                id: 'vol_new',
+                name: '其他已保存章节',
+                chapters: volCh,
+                isVip: false,
+            });
+        }
     } else if (keepMode == ChapterShowMode.UnsavedOnly) {
         const chIds = new Set(chapterLists.map(ch => ch.id));
         for (const vol of volumes) {
