@@ -345,6 +345,8 @@ export class IndexedDb implements Db {
                     name: data.chapterInfo.chapterName,
                     bookId: data.bookId,
                     time: data.time,
+                    prev: data.chapterInfo.prev,
+                    next: data.chapterInfo.next,
                 };
             } else if (!oldValue) {
                 currents.set(data.id, value);
@@ -354,6 +356,8 @@ export class IndexedDb implements Db {
                     name: data.chapterInfo.chapterName,
                     bookId: data.bookId,
                     time: data.time,
+                    prev: data.chapterInfo.prev,
+                    next: data.chapterInfo.next,
                 });
             }
         }, bookId, 'bookId');

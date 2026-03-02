@@ -38,27 +38,71 @@ export function hash_qdchapter_info(info: QdChapterInfo): string {
 
 export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Volume[], keepMode: ChapterShowMode): Volume[] {
     const vols: Volume[] = [];
-    if (keepMode == ChapterShowMode.All) {
-        const volMap: Map<number, Chapter> = new Map();
+    if (keepMode == ChapterShowMode.All || keepMode == ChapterShowMode.SavedOnly) {
+        const chMap: Map<number, Chapter> = new Map();
+        const volMap: Map<number, Volume> = new Map();
         for (const vo of volumes) {
             const vol = structuredClone(vo);
             for (const ch of vol.chapters) {
-                volMap.set(ch.id, ch);
+                chMap.set(ch.id, ch);
+                volMap.set(ch.id, vol);
             }
             vols.push(vol);
         }
         const volCh: Chapter[] = [];
+        let needed: QdChapterSimpleInfo[] = [];
         for (const ch of chapterLists) {
-            const chInfo = volMap.get(ch.id);
+            const chInfo = chMap.get(ch.id);
             if (!chInfo) {
-                volCh.push({
-                    id: ch.id,
-                    name: ch.name,
-                    isSaved: true,
-                });
+                needed.push(ch);
             } else {
                 chInfo.isSaved = true;
             }
+        }
+        let changed = false;
+        do {
+            const current_len = needed.length;
+            const not_found: QdChapterSimpleInfo[] = [];
+            for (const ch of needed) {
+                if (ch.prev) {
+                    const prevVol = volMap.get(ch.prev);
+                    if (prevVol) {
+                        const chIndex = prevVol.chapters.findIndex(c => c.id === ch.prev);
+                        if (chIndex !== -1) {
+                            prevVol.chapters.splice(chIndex + 1, 0, {
+                                id: ch.id,
+                                name: ch.name,
+                                isSaved: true,
+                            });
+                            continue;
+                        }
+                    }
+                }
+                if (ch.next) {
+                    const nextVol = volMap.get(ch.next);
+                    if (nextVol) {
+                        const chIndex = nextVol.chapters.findIndex(c => c.id === ch.next);
+                        if (chIndex !== -1) {
+                            nextVol.chapters.splice(chIndex, 0, {
+                                id: ch.id,
+                                name: ch.name,
+                                isSaved: true,
+                            });
+                            continue;
+                        }
+                    }
+                }
+                not_found.push(ch);
+            }
+            needed = not_found;
+            changed = current_len !== needed.length;
+        } while (changed && needed.length > 0);
+        for (const ch of needed) {
+            volCh.push({
+                id: ch.id,
+                name: ch.name,
+                isSaved: true,
+            });
         }
         if (volCh.length > 0) {
             vols.unshift({
@@ -68,38 +112,11 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
                 isVip: false,
             });
         }
-    } else if (keepMode == ChapterShowMode.SavedOnly) {
-        const chIds = new Set(chapterLists.map(ch => ch.id));
-        for (const vol of volumes) {
-            const newChs = vol.chapters.filter(ch => chIds.has(ch.id));
-            if (newChs.length > 0) {
-                vols.push({
-                    ...vol,
-                    chapters: newChs,
-                });
+        if (keepMode == ChapterShowMode.SavedOnly) {
+            for (const vol of vols) {
+                vol.chapters = vol.chapters.filter(ch => ch.isSaved);
+                vol.chapters.forEach(ch => delete ch.isSaved);
             }
-        }
-        for (const vol of vols) {
-            for (const ch of vol.chapters) {
-                chIds.delete(ch.id);
-            }
-        }
-        if (chIds.size > 0) {
-            const volCh: Chapter[] = [];
-            for (const ch of chapterLists) {
-                if (chIds.has(ch.id)) {
-                    volCh.push({
-                        id: ch.id,
-                        name: ch.name,
-                    });
-                }
-            }
-            vols.unshift({
-                id: 'vol_new',
-                name: '其他已保存章节',
-                chapters: volCh,
-                isVip: false,
-            });
         }
     } else if (keepMode == ChapterShowMode.UnsavedOnly) {
         const chIds = new Set(chapterLists.map(ch => ch.id));

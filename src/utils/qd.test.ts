@@ -83,4 +83,90 @@ export default function t() {
             },
         ]);
     });
+    test(filename, 'merge_volumes_2', () => {
+        const sourceList: Volume[] = [
+            {
+                id: 'test',
+                name: 'Test Volume',
+                isVip: false,
+                chapters: [
+                    { id: 3, name: 'Chapter 3' },
+                ]
+            }
+        ];
+        const targetList: QdChapterSimpleInfo[] = [
+            {
+                primaryKey: 0,
+                id: 1,
+                name: 'Chapter 1',
+                bookId: 0,
+                time: 10,
+                next: 3,
+            },
+            {
+                primaryKey: 0,
+                id: 4,
+                name: 'Chapter 4',
+                bookId: 0,
+                time: 11,
+                prev: 3,
+            },
+            {
+                primaryKey: 0,
+                id: 33,
+                name: 'Other',
+                bookId: 0,
+                time: 12,
+            },
+        ];
+        expect(get_new_volumes(targetList, sourceList, ChapterShowMode.All)).toEqual([
+            {
+                id: 'vol_new',
+                name: '其他已保存章节',
+                isVip: false,
+                chapters: [
+                    { id: 33, name: 'Other', isSaved: true },
+                ],
+            },
+            {
+                id: 'test',
+                name: 'Test Volume',
+                isVip: false,
+                chapters: [
+                    { id: 1, name: 'Chapter 1', isSaved: true },
+                    { id: 3, name: 'Chapter 3' },
+                    { id: 4, name: 'Chapter 4', isSaved: true },
+                ]
+            }
+        ]);
+        expect(get_new_volumes(targetList, sourceList, ChapterShowMode.SavedOnly)).toEqual([
+            {
+                id: 'vol_new',
+                name: '其他已保存章节',
+                isVip: false,
+                chapters: [
+                    { id: 33, name: 'Other' },
+                ],
+            },
+            {
+                id: 'test',
+                name: 'Test Volume',
+                isVip: false,
+                chapters: [
+                    { id: 1, name: 'Chapter 1' },
+                    { id: 4, name: 'Chapter 4' },
+                ],
+            },
+        ]);
+        expect(get_new_volumes(targetList, sourceList, ChapterShowMode.UnsavedOnly)).toEqual([
+            {
+                id: 'test',
+                name: 'Test Volume',
+                isVip: false,
+                chapters: [
+                    { id: 3, name: 'Chapter 3' },
+                ],
+            },
+        ]);
+    });
 }

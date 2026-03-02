@@ -244,7 +244,7 @@ export class PocketBaseDb implements Db {
         const currents: Map<number, [number, number]> = new Map();
         const list = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getFullList({
             filter: `bookId = ${bookId}`,
-            fields: 'id,chapterId,bookId,time,data.chapterInfo.chapterName',
+            fields: 'id,chapterId,bookId,time,data.chapterInfo.chapterName,data.chapterInfo.prev,data.chapterInfo.next',
         });
         const re: QdChapterSimpleInfo[] = [];
         for (const item of list) {
@@ -261,6 +261,8 @@ export class PocketBaseDb implements Db {
                     name: data.chapterInfo.chapterName,
                     bookId: item.bookId,
                     time: item.time,
+                    prev: data.chapterInfo.prev,
+                    next: data.chapterInfo.next,
                 };
             } else if (!oldValue) {
                 currents.set(key, value);
@@ -270,6 +272,8 @@ export class PocketBaseDb implements Db {
                     name: data.chapterInfo.chapterName,
                     bookId: item.bookId,
                     time: item.time,
+                    prev: data.chapterInfo.prev,
+                    next: data.chapterInfo.next,
                 });
             }
         }

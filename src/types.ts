@@ -28,6 +28,10 @@ export type QdChapterSimpleInfo = {
     name: string;
     bookId: number;
     time: number;
+    /// Previous chapter ID
+    prev?: number;
+    /// Next chapter ID
+    next?: number;
 }
 
 export type QdChapterHistoryInfo = {
