@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import { CheckCircleOutlined } from "@ant-design/icons";
 import OpenInNewTab from "../../../node_modules/@material-icons/svg/svg/open_in_new/twotone.svg";
 import Icon from "../../components/Icon";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import LocationSearchingTwotone from "../../../node_modules/@material-icons/svg/svg/location_searching/twotone.svg";
 
 export type VolumesListProps = {
@@ -31,6 +31,7 @@ async function open_in_qidian(bookId: number, chapterId: number) {
 }
 
 export default function VolumesList({ volumes, bookId, oneLine, current }: VolumesListProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
     const currentVolumeId = useMemo(() => {
         if (!current) return null;
         return volumes.find(v => v.chapters.some(ch => ch.id === current))?.id ?? null;
@@ -39,12 +40,14 @@ export default function VolumesList({ volumes, bookId, oneLine, current }: Volum
     const [activeKeys, setActiveKeys] = useState<string[]>([]);
 
     const scrollToCurrent = () => {
-        if (!current || !currentVolumeId) return;
+        if (!current || !currentVolumeId || !containerRef.current) return;
+
+        const findChapterEl = () => containerRef.current?.querySelector<HTMLElement>(`[data-chapter-id="${current}"]`);
 
         if (!activeKeys.includes(currentVolumeId)) {
             setActiveKeys(prev => [...prev, currentVolumeId]);
             function checkChapterInView() {
-                const el = document.getElementById(`chapter-${current}`);
+                const el = findChapterEl();
                 if (el && el.offsetParent) {
                     // Wait for the collapse animation to finish before scrolling
                     setTimeout(() => {
@@ -56,7 +59,7 @@ export default function VolumesList({ volumes, bookId, oneLine, current }: Volum
             }
             setTimeout(checkChapterInView, 20);
         } else {
-            const el = document.getElementById(`chapter-${current}`);
+            const el = findChapterEl();
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -65,7 +68,7 @@ export default function VolumesList({ volumes, bookId, oneLine, current }: Volum
 
     const items = useMemo<CollapseProps['items']>(() => volumes.map(v => {
         const children = v.chapters.map(chapter => (
-            <Flex className={oneLine ? styles.chone : styles.ch} key={chapter.id} id={`chapter-${chapter.id}`}>
+            <Flex className={oneLine ? styles.chone : styles.ch} key={chapter.id} data-chapter-id={chapter.id}>
                 <Link to={`/qd/book/${bookId}/chapter/${chapter.id}`}>{chapter.name}</Link>
                 <Flex className={styles.action}>
                     {chapter.isSaved && <CheckCircleOutlined className={styles.saved} />}
@@ -87,7 +90,7 @@ export default function VolumesList({ volumes, bookId, oneLine, current }: Volum
             </Flex>
         }
     }), [volumes, bookId, oneLine]);
-    return (<div className={styles.c}>
+    return (<div className={styles.c} ref={containerRef}>
         <div className={styles.cl}><Collapse
             key={bookId}
             activeKey={activeKeys}
