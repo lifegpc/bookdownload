@@ -11,6 +11,7 @@ import ShowMode from "./ShowMode";
 import { sendMessageToTab, waitTabLoaded } from "../../utils";
 import { QdBookDownloadOptions } from "../../types";
 import SwitchLabel from "../../components/SwitchLabel";
+import { useNavigate } from "react-router";
 
 const { Paragraph, Link } = Typography;
 
@@ -24,6 +25,7 @@ export default function BookIndex() {
     const [err, setErr] = useState<string | null>(null);
     const [saveChapterOpenAsEpub, setSaveChapterOpenAsEpub] = useState(false);
     const [downloadOptions, setDownloadOptions] = useState<QdBookDownloadOptions>({});
+    const navigate = useNavigate();
     function setChapterShowMode(chapterShowMode: ChapterShowMode) {
         setBookStatus({ ...bookStatus, chapterShowMode });
     }
@@ -104,6 +106,7 @@ export default function BookIndex() {
                         label="跳过未保存章节"
                     />
                 </Modal>
+                <Button onClick={() => navigate('chapter/new')}>新章节</Button>
             </Flex>
             <Affix offsetTop={10}>
                 <Flex justify="flex-end" className={styles.affix}>

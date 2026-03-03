@@ -128,9 +128,9 @@ export type ChapterInfo = {
     freeStatus: number;
     modifyTime: number;
     multiModal: number;
-    next: number;
+    next?: number;
     nextCcid: string;
-    prev: number;
+    prev?: number;
     prevCcid: string;
     seq: number;
     updateTime: string;

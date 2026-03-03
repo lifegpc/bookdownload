@@ -62,6 +62,10 @@ export interface Db {
      */
     getLatestQdChapter(id: number): Promise<QdChapterInfo | undefined>;
     /**
+     * Returns a new chapter ID (<0) that is not used in the database.
+     */
+    getQdNewChapterId(): Promise<number>;
+    /**
      * Set the latest chapter by primary key. This function will update the time of the chapter.
      * @param key Primary key of the chapter, which is determined by the database implementation.
      * @returns Primary key of the chapter set as latest, which is determined by the database implementation. if the chapter is not found, return undefined.

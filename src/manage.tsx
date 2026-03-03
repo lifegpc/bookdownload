@@ -10,6 +10,7 @@ import { DbContext } from "./manage/dbProvider";
 import QdBook from "./manage/qd/Book";
 import QdBookIndex from "./manage/qd/BookIndex";
 import QdBookChapter from "./manage/qd/BookChapter";
+import QdBookNewChapter from "./manage/qd/BookNewChapter";
 
 const router = createHashRouter([
     {
@@ -31,6 +32,10 @@ const router = createHashRouter([
             {
                 path: "chapter/:chapterId",
                 element: <QdBookChapter />
+            },
+            {
+                path: "chapter/new",
+                element: <QdBookNewChapter />
             }
         ],
     }

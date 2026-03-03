@@ -91,7 +91,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
     const [total, setTotal] = useState<number>(0);
     const [current, setCurrent] = useState<number>(0);
     async function save() {
-        const pickerOptions = {
+        const pickerOptions: SaveFilePickerOptions = {
             suggestedName: `${info.bookName}.${save_type}`,
             types: [{
                 description: 'EPUB File',

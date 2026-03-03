@@ -37,6 +37,8 @@ export interface ChapterEditorState {
 
 export default class ChapterEditor extends Component<ChapterEditorProps, ChapterEditorState> {
     ref;
+    #editorContainerRef = createRef<HTMLDivElement>();
+    #resizeObserver?: ResizeObserver;
     db?: Db;
     constructor(props: ChapterEditorProps) {
         super(props);
@@ -50,6 +52,17 @@ export default class ChapterEditor extends Component<ChapterEditorProps, Chapter
             loadHistoryFailed: false,
             historyPanelOpen: false,
         };
+    }
+    componentDidMount() {
+        if (this.#editorContainerRef.current) {
+            this.#resizeObserver = new ResizeObserver(() => {
+                this.layout();
+            });
+            this.#resizeObserver.observe(this.#editorContainerRef.current);
+        }
+    }
+    componentWillUnmount() {
+        this.#resizeObserver?.disconnect();
     }
     componentDidUpdate(prevProps: Readonly<ChapterEditorProps>, _prevState: Readonly<ChapterEditorState>, _snapshot?: unknown): void {
         if (prevProps.chapter.id !== this.props.chapter.id) {
@@ -208,7 +221,7 @@ export default class ChapterEditor extends Component<ChapterEditorProps, Chapter
                         </Drawer>}
                     </Flex>
                 </Flex>
-                <div className={styles.editor}>
+                <div ref={this.#editorContainerRef} className={styles.editor}>
                     <MonacoEditor
                         ref={this.ref}
                         value={this.state.content}

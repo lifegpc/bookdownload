@@ -75,7 +75,7 @@ function get_datas<T>(db: IDBDatabase, storeName: string, key?: IDBValidKey | ID
     });
 }
 
-function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, key: IDBValidKey | IDBKeyRange, convert: (key: IDBValidKey, data: T) => Promise<U> | U, index?: string, direction?: IDBCursorDirection): Promise<U | undefined> {
+function get_data_with_convert<T, U>(db: IDBDatabase, storeName: string, key: IDBValidKey | IDBKeyRange | undefined, convert: (key: IDBValidKey, data: T) => Promise<U> | U, index?: string, direction?: IDBCursorDirection): Promise<U | undefined> {
     return new Promise<U | undefined>((resolve, reject) => {
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
@@ -417,6 +417,20 @@ export class IndexedDb implements Db {
             }
             return data;
         }, 'id', 'prev');
+    }
+    async getQdNewChapterId(): Promise<number> {
+        const smallest_id = await get_data_with_convert<CompressedQdChapterInfo | QdChapterInfo, number>(this.qddb, 'chapters', undefined, async (key, data) => {
+            if ('compressed' in data) {
+                const decompressed = await decompress(data.compressed);
+                const decoded = new TextDecoder().decode(decompressed);
+                data = JSON.parse(decoded) as QdChapterInfo;
+            }
+            return data.id;
+        }, 'id', 'prev');
+        if (smallest_id === undefined || smallest_id >= 0) {
+            return -1;
+        }
+        return smallest_id - 1;
     }
     async setAsLatestQdChapter(key: unknown): Promise<unknown> {
         const chapter = await this.getQdChapter(key);

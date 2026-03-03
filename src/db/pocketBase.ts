@@ -346,6 +346,18 @@ export class PocketBaseDb implements Db {
         }
         return record;
     }
+    async getQdNewChapterId(): Promise<number> {
+        const smallest_id = await this.client.collection(`${this.cfg.prefix}qd_chapters`).getList(1, 1, {
+            filter: `chapterId < 0`,
+            fields: 'chapterId',
+            sort: 'chapterId',
+        });
+        if (smallest_id.totalItems === 0) {
+            return -1;
+        }
+        const id = smallest_id.items[0].chapterId;
+        return id - 1;
+    }
     async setAsLatestQdChapter(key: unknown): Promise<unknown> {
         await this.client.collection(`${this.cfg.prefix}qd_chapters`).update(String(key), {
             time: Date.now(),
