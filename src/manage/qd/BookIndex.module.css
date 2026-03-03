@@ -35,6 +35,11 @@
     white-space: pre-wrap;
 }
 
+.actions {
+    max-width: min(calc(100% - 20px), 940px);
+    margin: 4px auto;
+}
+
 .affix {
     background-color: white;
 }

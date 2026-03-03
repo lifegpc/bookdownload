@@ -1,4 +1,4 @@
-import { Affix, Flex, Space, Tag, Typography, Skeleton, Result, Button } from "antd";
+import { Affix, Flex, Space, Tag, Typography, Skeleton, Result, Button, Modal } from "antd";
 import { useBookInfo } from "./BookInfoProvider";
 import styles from './BookIndex.module.css';
 import { loadChapterListsIfNeeded, useBookContext, useBookStatus } from "./BookStatusProvider";
@@ -9,6 +9,8 @@ import type { Volume } from "../../qdtypes";
 import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
 import ShowMode from "./ShowMode";
 import { sendMessageToTab, waitTabLoaded } from "../../utils";
+import { QdBookDownloadOptions } from "../../types";
+import SwitchLabel from "../../components/SwitchLabel";
 
 const { Paragraph, Link } = Typography;
 
@@ -20,6 +22,8 @@ export default function BookIndex() {
     const [bookStatus, setBookStatus] = useBookStatus();
     const setItems = useBookContext();
     const [err, setErr] = useState<string | null>(null);
+    const [saveChapterOpenAsEpub, setSaveChapterOpenAsEpub] = useState(false);
+    const [downloadOptions, setDownloadOptions] = useState<QdBookDownloadOptions>({});
     function setChapterShowMode(chapterShowMode: ChapterShowMode) {
         setBookStatus({ ...bookStatus, chapterShowMode });
     }
@@ -41,6 +45,7 @@ export default function BookIndex() {
         await sendMessageToTab(tab.id!, {
             type: 'DownloadQdBookAsEpub',
             info: bookInfo,
+            options: downloadOptions,
         });
     }
     useEffect(() => {
@@ -75,8 +80,30 @@ export default function BookIndex() {
                     ))}</Paragraph>
                 </Space>
             </Flex>
-            <Flex align="cenrer">
-                <Button type="primary" onClick={handleSaveAsEpub}>保存为EPUB</Button>
+            <Flex align="center" className={styles.actions}>
+                <Button type="primary" onClick={() => setSaveChapterOpenAsEpub(true)}>保存为EPUB</Button>
+                <Modal
+                    open={saveChapterOpenAsEpub}
+                    onCancel={() => setSaveChapterOpenAsEpub(false)}
+                    onOk={() => {
+                        setSaveChapterOpenAsEpub(false);
+                        handleSaveAsEpub();
+                    }}
+                    title="保存为EPUB"
+                    okText="保存"
+                    cancelText="取消"
+                >
+                    <SwitchLabel
+                        checked={downloadOptions.skipNotBoughtChapters ?? false}
+                        onChange={(checked) => setDownloadOptions({ ...downloadOptions, skipNotBoughtChapters: checked })}
+                        label="跳过未购买章节"
+                    />
+                    <SwitchLabel
+                        checked={downloadOptions.skipUnsavedChapters ?? false}
+                        onChange={(checked) => setDownloadOptions({ ...downloadOptions, skipUnsavedChapters: checked })}
+                        label="跳过未保存章节"
+                    />
+                </Modal>
             </Flex>
             <Affix offsetTop={10}>
                 <Flex justify="flex-end" className={styles.affix}>
