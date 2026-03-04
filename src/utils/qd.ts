@@ -36,6 +36,24 @@ export function hash_qdchapter_info(info: QdChapterInfo): string {
     return toHex(hash);
 }
 
+enum MergeMode {
+    PreOnly,
+    NextOnly,
+    All,
+    AllWithNext,
+    AllWithPrev,
+}
+
+const SORT_MODE: MergeMode[] = [MergeMode.PreOnly, MergeMode.NextOnly, MergeMode.All, MergeMode.AllWithNext, MergeMode.AllWithPrev];
+
+function NextMode(mode: MergeMode) {
+    const index = SORT_MODE.indexOf(mode);
+    if (index === -1) return null;
+    if (index === SORT_MODE.length - 1) return null;
+    return SORT_MODE[index + 1];
+}
+
+
 export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Volume[], keepMode: ChapterShowMode): Volume[] {
     const vols: Volume[] = [];
     if (keepMode == ChapterShowMode.All || keepMode == ChapterShowMode.SavedOnly) {
@@ -57,28 +75,16 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
                 needed.push(ch);
             } else {
                 chInfo.isSaved = true;
+                chInfo.name = ch.name;
             }
         }
         let changed = false;
+        let merge_mode = SORT_MODE[0];
         do {
             const current_len = needed.length;
             const not_found: QdChapterSimpleInfo[] = [];
             for (const ch of needed) {
-                if (ch.prev) {
-                    const prevVol = volMap.get(ch.prev);
-                    if (prevVol) {
-                        const chIndex = prevVol.chapters.findIndex(c => c.id === ch.prev);
-                        if (chIndex !== -1) {
-                            prevVol.chapters.splice(chIndex + 1, 0, {
-                                id: ch.id,
-                                name: ch.name,
-                                isSaved: true,
-                            });
-                            continue;
-                        }
-                    }
-                }
-                if (ch.next) {
+                if ((merge_mode === MergeMode.NextOnly && ch.next && !ch.prev) || (merge_mode === MergeMode.AllWithNext && ch.prev && ch.next)) {
                     const nextVol = volMap.get(ch.next);
                     if (nextVol) {
                         const chIndex = nextVol.chapters.findIndex(c => c.id === ch.next);
@@ -88,6 +94,39 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
                                 name: ch.name,
                                 isSaved: true,
                             });
+                            volMap.set(ch.id, nextVol);
+                            continue;
+                        }
+                    }
+                }
+                if ((merge_mode === MergeMode.PreOnly && ch.prev && !ch.next) || (merge_mode === MergeMode.AllWithPrev && ch.prev && ch.next)) {
+                    const prevVol = volMap.get(ch.prev);
+                    if (prevVol) {
+                        const chIndex = prevVol.chapters.findIndex(c => c.id === ch.prev);
+                        if (chIndex !== -1) {
+                            prevVol.chapters.splice(chIndex + 1, 0, {
+                                id: ch.id,
+                                name: ch.name,
+                                isSaved: true,
+                            });
+                            volMap.set(ch.id, prevVol);
+                            continue;
+                        }
+                    }
+                }
+                if (merge_mode === MergeMode.All && ch.prev && ch.next) {
+                    const prevVol = volMap.get(ch.prev);
+                    const nextVol = volMap.get(ch.next);
+                    if (prevVol && nextVol && prevVol === nextVol) {
+                        const preIndex = prevVol.chapters.findIndex(c => c.id === ch.prev);
+                        const nextIndex = prevVol.chapters.findIndex(c => c.id === ch.next);
+                        if (preIndex !== -1 && nextIndex !== -1 && preIndex + 1 === nextIndex) {
+                            prevVol.chapters.splice(preIndex + 1, 0, {
+                                id: ch.id,
+                                name: ch.name,
+                                isSaved: true,
+                            });
+                            volMap.set(ch.id, prevVol);
                             continue;
                         }
                     }
@@ -96,6 +135,13 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
             }
             needed = not_found;
             changed = current_len !== needed.length;
+            if (!changed) {
+                const nextMode = NextMode(merge_mode);
+                if (nextMode) {
+                    merge_mode = nextMode;
+                    changed = true;
+                }
+            }
         } while (changed && needed.length > 0);
         for (const ch of needed) {
             volCh.push({
@@ -117,6 +163,7 @@ export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Vo
                 vol.chapters = vol.chapters.filter(ch => ch.isSaved);
                 vol.chapters.forEach(ch => delete ch.isSaved);
             }
+            return vols.filter(vol => vol.chapters.length > 0);
         }
     } else if (keepMode == ChapterShowMode.UnsavedOnly) {
         const chIds = new Set(chapterLists.map(ch => ch.id));

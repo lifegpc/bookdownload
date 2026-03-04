@@ -1,0 +1,67 @@
+.c {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+}
+
+.name {
+    flex: 3;
+}
+
+.actions {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.editor {
+    flex: 1;
+    height: 100%;
+}
+
+.save {
+    color: gray;
+    cursor: pointer;
+    margin: 8px;
+}
+
+.save:hover {
+    color: #4096ff;
+}
+
+.save.disabled {
+    color: lightgray;
+    cursor: not-allowed;
+}
+
+.save.disabled:hover {
+    color: lightgray;
+}
+
+.loc {
+    color: gray;
+    cursor: pointer;
+    margin: 8px;
+}
+
+.loc:hover {
+    color: #4096ff;
+}
+
+.loc.unset {
+    color: red;
+}
+
+.loc.unset:hover {
+    color: #4096ff;
+}

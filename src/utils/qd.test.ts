@@ -113,6 +113,14 @@ export default function t() {
             },
             {
                 primaryKey: 0,
+                id: 5,
+                name: 'Chapter 5',
+                bookId: 0,
+                time: 12,
+                prev: 4,
+            },
+            {
+                primaryKey: 0,
                 id: 33,
                 name: 'Other',
                 bookId: 0,
@@ -136,6 +144,7 @@ export default function t() {
                     { id: 1, name: 'Chapter 1', isSaved: true },
                     { id: 3, name: 'Chapter 3' },
                     { id: 4, name: 'Chapter 4', isSaved: true },
+                    { id: 5, name: 'Chapter 5', isSaved: true },
                 ]
             }
         ]);
@@ -155,6 +164,7 @@ export default function t() {
                 chapters: [
                     { id: 1, name: 'Chapter 1' },
                     { id: 4, name: 'Chapter 4' },
+                    { id: 5, name: 'Chapter 5' },
                 ],
             },
         ]);

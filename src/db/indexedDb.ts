@@ -420,13 +420,8 @@ export class IndexedDb implements Db {
     }
     async getQdNewChapterId(): Promise<number> {
         const smallest_id = await get_data_with_convert<CompressedQdChapterInfo | QdChapterInfo, number>(this.qddb, 'chapters', undefined, async (key, data) => {
-            if ('compressed' in data) {
-                const decompressed = await decompress(data.compressed);
-                const decoded = new TextDecoder().decode(decompressed);
-                data = JSON.parse(decoded) as QdChapterInfo;
-            }
             return data.id;
-        }, 'id', 'prev');
+        }, 'id', 'next');
         if (smallest_id === undefined || smallest_id >= 0) {
             return -1;
         }

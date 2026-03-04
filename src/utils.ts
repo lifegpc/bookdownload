@@ -163,3 +163,10 @@ export function toHex(bytes: Uint8Array): string {
 
 /**@ts-expect-error Detect ServiceWorkerGlobalScope */
 export const isServiceWorker = typeof ServiceWorkerGlobalScope !== 'undefined' && self instanceof ServiceWorkerGlobalScope;
+
+let idCounter = 0;
+
+export function generateId(prefix: string = 'id'): string {
+    idCounter += 1;
+    return `${prefix}_${idCounter}`;
+}
