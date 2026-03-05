@@ -150,7 +150,7 @@ export default class ChapterEditor extends Component<ChapterEditorProps, Chapter
                             () => {
                                 const ch = this.props.chapter;
                                 ch.chapterInfo.chapterName = this.state.chapterName;
-                                ch.contents = this.state.content.split('\n');
+                                ch.contents = this.state.content.replaceAll('\r\n', '\n').split('\n');
                                 db.updateQdChapter(ch).then((_key) => {
                                     this.setState({ changed: false });
                                 }).catch((err) => {

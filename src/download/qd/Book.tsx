@@ -61,7 +61,11 @@ function generate_chapter_page(ch: QdChapterInfo) {
     const contents = ch.contents ?? get_chapter_content(ch.chapterInfo.content);
     for (const content of contents) {
         const p = xhtml.createElement('p');
-        p.textContent = content;
+        let c = content;
+        if (c.endsWith('\r')) {
+            c = c.slice(0, -1);
+        }
+        p.textContent = c;
         body.appendChild(p);
     }
     return new XMLSerializer().serializeToString(xhtml);
@@ -90,6 +94,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
     const [ok, setOk] = useState(false);
     const [total, setTotal] = useState<number>(0);
     const [current, setCurrent] = useState<number>(0);
+    const [msg, setMsg] = useState<string>('');
     async function save() {
         const pickerOptions: SaveFilePickerOptions = {
             suggestedName: `${info.bookName}.${save_type}`,
@@ -102,6 +107,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
         const writable = await fileHandle.createWritable();
         const epub = new Epub(writable);
         if (epub) {
+            setMsg('初始化EPUB文件');
             await epub.init();
             epub.package.metadata = {
                 title: info.bookName,
@@ -114,6 +120,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
                 subjects: info.tags.map(tag => tag.name),
             };
             epub.package.unique_identifier = 'qd';
+            setMsg('下载封面');
             const cover = await download_cover(info.bookInfo.imgUrl);
             await epub.add_blob('cover.jpg', cover, {
                 id: 'cover',
@@ -122,6 +129,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
                     cover_image: true,
                 }
             }, {level: 0});
+            setMsg('生成标题页');
             const titlepage = generate_titlepage(info);
             await epub.add_text('titlepage.xhtml', titlepage, {
                 id: 'titlepage',
@@ -135,38 +143,38 @@ export default function Book({info, options, save_type}: QdBookProps) {
                 href: 'titlepage.xhtml',
             }
         ];
+        setMsg('正在连接数据库');
         const db = await createDb();
         await db.init();
+        setMsg('正在加载章节列表');
         const chapters = await db.getQdChapterSimpleInfos(info.id);
+        setMsg('')
         setTotal(chapters.length);
         const mode = options?.skipUnsavedChapters ? ChapterShowMode.SavedOnly : ChapterShowMode.All;
         const skipUnsavedChapters = options?.skipUnsavedChapters ?? false;
         const skipNotBoughtChapters = options?.skipNotBoughtChapters ?? false;
         const vols = get_new_volumes(chapters, info.volumes, mode);
         const chpkeys: unknown[] = [];
-        const chs: Map<unknown, QdChapterInfo> = new Map();
+        let batchChs: (QdChapterInfo | undefined)[] = []
         const batchSize = db.batchSize();
-        if (batchSize) {
-            for (const ch of chapters) {
-                chpkeys.push(ch.primaryKey);
-            }
-            let c = 0;
-            while (chpkeys.length > 0) {
-                const batchKeys = chpkeys.splice(0, batchSize);
-                const batchChs = await db.getQdChaptersBatch(batchKeys);
-                batchChs.forEach((ch, i) => {
-                    if (ch) {
-                        chs.set(batchKeys[i], ch);
-                    }
-                });
-                c += batchChs.length;
-                setCurrent(c);
-            }
-        }
         const chKeys: Map<number, unknown> = new Map();
         let c = 0;
         for (const ch of chapters) {
             chKeys.set(ch.id, ch.primaryKey);
+        }
+        if (batchSize) {
+            for (const vol of vols) {
+                for (const ch of vol.chapters) {
+                    if (skipUnsavedChapters || ch.isSaved) {
+                        const pKey = chKeys.get(ch.id);
+                        if (pKey) {
+                            chpkeys.push(pKey);
+                        } else {
+                            throw new Error(`Chapter primary key not found for chapter id ${ch.id}`);
+                        }
+                    }
+                }
+            }
         }
         for (const vol of vols) {
             const volNav: EpubNavItem = {
@@ -184,7 +192,13 @@ export default function Book({info, options, save_type}: QdBookProps) {
                 if (skipUnsavedChapters || chapter.isSaved) {
                     let ch: QdChapterInfo | undefined;
                     if (batchSize) {
-                        ch = chs.get(chKeys.get(chapter.id));
+                        if (batchChs.length > 0) {
+                            ch = batchChs.shift();
+                        } else {
+                            const batchKeys = chpkeys.splice(0, batchSize);
+                            batchChs = await db.getQdChaptersBatch(batchKeys);
+                            ch = batchChs.shift();
+                        }
                     } else {
                         ch = await db.getQdChapter(chKeys.get(chapter.id));
                     }
@@ -192,7 +206,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
                         throw new Error(`Chapter not found: ${chapter.id}`);
                     }
                     c += 1;
-                    if (!batchSize) setCurrent(c);
+                    setCurrent(c);
                     if (skipNotBoughtChapters && !ch.chapterInfo.isBuy) {
                         continue;
                     }
@@ -219,7 +233,6 @@ export default function Book({info, options, save_type}: QdBookProps) {
                 navs.push(volNav);
             }
         }
-        chs.clear();
         if (epub) {
             await epub.add_nav({
                 items: navs,
@@ -237,6 +250,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
     return (<>
         {err && <Result title="保存失败" status="error" subTitle={err} />}
         {ok && <Result title="保存成功" status="success" />}
-        {total > 0 && !ok && <div>正在保存章节 {current} / {total}</div>}
+        {total > 0 && !ok && !msg && <Result title="保存中" status="info" subTitle={`正在保存章节 ${current} / ${total}`} />}
+        {msg && <Result title="保存中" status="info" subTitle={msg} />}
     </>);
 }

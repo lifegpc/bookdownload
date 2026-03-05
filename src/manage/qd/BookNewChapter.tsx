@@ -199,7 +199,7 @@ export default function BookNewChapter() {
         if (!loc) return;
         setIsSaving(true);
         try {
-            chapter.contents = content.split('\n');
+            chapter.contents = content.replaceAll('\r\n', '\n').split('\n');
             chapter.chapterInfo.chapterName = chapterName;
             chapter.chapterInfo.prev = loc[0] ?? undefined;
             chapter.chapterInfo.next = loc[1] ?? undefined;
