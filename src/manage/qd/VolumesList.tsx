@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import { CheckCircleOutlined } from "@ant-design/icons";
 import OpenInNewTab from "../../../node_modules/@material-icons/svg/svg/open_in_new/twotone.svg";
 import Icon from "../../components/Icon";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import LocationSearchingTwotone from "../../../node_modules/@material-icons/svg/svg/location_searching/twotone.svg";
 import { generateId } from "../../utils";
 
@@ -34,7 +34,7 @@ async function open_in_qidian(bookId: number, chapterId: number) {
     }
 }
 
-export default function VolumesList({ volumes, bookId, oneLine, current, loc, locTip, setLoc }: VolumesListProps) {
+export default memo(function VolumesList({ volumes, bookId, oneLine, current, loc, locTip, setLoc }: VolumesListProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const currentVolumeId = useMemo(() => {
         if (!current) return null;
@@ -137,4 +137,4 @@ export default function VolumesList({ volumes, bookId, oneLine, current, loc, lo
         /></div>
         {current && <Tooltip title="定位到当前章节" placement="left"><Icon cls={styles.current}><LocationSearchingTwotone fill="currentColor" onClick={scrollToCurrent} /></Icon></Tooltip>}
     </div>);
-}
+})

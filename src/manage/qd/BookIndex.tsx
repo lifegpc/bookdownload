@@ -3,7 +3,7 @@ import { useBookInfo } from "./BookInfoProvider";
 import styles from './BookIndex.module.css';
 import { loadChapterListsIfNeeded, useBookContext, useBookStatus } from "./BookStatusProvider";
 import VolumesList from "./VolumesList";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDb } from "../dbProvider";
 import type { Volume } from "../../qdtypes";
 import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
@@ -53,13 +53,17 @@ export default function BookIndex() {
     useEffect(() => {
         handle();
     }, [bookInfo.id]);
-    setItems([]);
-    let vols: Volume[] = bookInfo.volumes;
-    if (bookStatus.chapterLists) {
-        vols = get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, bookStatus.chapterShowMode);
-    } else if (bookStatus.chapterShowMode != ChapterShowMode.All) {
-        vols = [];
-    }
+    useEffect(() => {
+        setItems([]);
+    }, [setItems]);
+    const vols = useMemo<Volume[]>(() => {
+        if (bookStatus.chapterLists) {
+            return get_new_volumes(bookStatus.chapterLists, bookInfo.volumes, bookStatus.chapterShowMode);
+        } else if (bookStatus.chapterShowMode != ChapterShowMode.All) {
+            return [];
+        }
+        return bookInfo.volumes;
+    }, [bookStatus.chapterLists, bookInfo.volumes, bookStatus.chapterShowMode]);
     return (
         <div className={styles.c}>
             <Flex justify="center" align="center">
