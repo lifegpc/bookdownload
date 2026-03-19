@@ -55,6 +55,13 @@ function NextMode(mode: MergeMode) {
 
 
 export function get_new_volumes(chapterLists: QdChapterSimpleInfo[], volumes: Volume[], keepMode: ChapterShowMode): Volume[] {
+    for (const ch of chapterLists) {
+        // 起点使用 -1 标识，但后续处理中只识别undefined
+        if (ch.id > 0) {
+            if (ch.prev === -1) ch.prev = undefined;
+            if (ch.next === -1) ch.next = undefined;
+        }
+    }
     const vols: Volume[] = [];
     if (keepMode == ChapterShowMode.All || keepMode == ChapterShowMode.SavedOnly) {
         const chMap: Map<number, Chapter> = new Map();
