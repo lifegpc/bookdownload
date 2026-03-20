@@ -9,7 +9,7 @@ import type { Volume } from "../../qdtypes";
 import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
 import ShowMode from "./ShowMode";
 import { sendMessageToTab, waitTabLoaded } from "../../utils";
-import { QdBookDownloadOptions } from "../../types";
+import { QdBookDownloadOptions, QdBookTxtZipOptions } from "../../types";
 import SwitchLabel from "../../components/SwitchLabel";
 import { useNavigate } from "react-router";
 
@@ -23,8 +23,9 @@ export default function BookIndex() {
     const [bookStatus, setBookStatus] = useBookStatus();
     const setItems = useBookContext();
     const [err, setErr] = useState<string | null>(null);
-    const [saveChapterOpenAsEpub, setSaveChapterOpenAsEpub] = useState(false);
+    const [saveChapterOpenSaveAs, setSaveChapterOpenSaveAs] = useState<'epub' | 'txtzip' | false>(false);
     const [downloadOptions, setDownloadOptions] = useState<QdBookDownloadOptions>({});
+    const [txtzipOptions, setTxtZipOptions] = useState<QdBookTxtZipOptions>({});
     const navigate = useNavigate();
     function setChapterShowMode(chapterShowMode: ChapterShowMode) {
         setBookStatus({ ...bookStatus, chapterShowMode });
@@ -38,17 +39,26 @@ export default function BookIndex() {
             setErr(e instanceof Error ? e.message : String(e));
         });
     }
-    async function handleSaveAsEpub() {
+    async function handleSave() {
         const url = chrome.runtime.getURL('dist/download.html');
         const tab = await chrome.tabs.create({ url });
         if (tab.status !== 'complete') {
             await waitTabLoaded(tab.id!);
         }
-        await sendMessageToTab(tab.id!, {
-            type: 'DownloadQdBookAsEpub',
-            info: bookInfo,
-            options: downloadOptions,
-        });
+        if (saveChapterOpenSaveAs === 'epub') {
+            await sendMessageToTab(tab.id!, {
+                type: 'DownloadQdBookAsEpub',
+                info: bookInfo,
+                options: downloadOptions,
+            });
+        } else if (saveChapterOpenSaveAs === 'txtzip') {
+            await sendMessageToTab(tab.id!, {
+                type: 'DownloadQdBookAsTxtZip',
+                info: bookInfo,
+                options: downloadOptions,
+                txtzip: txtzipOptions,
+            });
+        }
     }
     useEffect(() => {
         handle();
@@ -87,15 +97,16 @@ export default function BookIndex() {
                 </Space>
             </Flex>
             <Flex align="center" className={styles.actions}>
-                <Button type="primary" onClick={() => setSaveChapterOpenAsEpub(true)}>保存为EPUB</Button>
+                <Button type="primary" onClick={() => setSaveChapterOpenSaveAs('epub')}>保存为EPUB</Button>
+                <Button type="primary" onClick={() => setSaveChapterOpenSaveAs('txtzip')}>保存为TXT ZIP</Button>
                 <Modal
-                    open={saveChapterOpenAsEpub}
-                    onCancel={() => setSaveChapterOpenAsEpub(false)}
+                    open={saveChapterOpenSaveAs !== false}
+                    onCancel={() => setSaveChapterOpenSaveAs(false)}
                     onOk={() => {
-                        setSaveChapterOpenAsEpub(false);
-                        handleSaveAsEpub();
+                        setSaveChapterOpenSaveAs(false);
+                        handleSave();
                     }}
-                    title="保存为EPUB"
+                    title={`保存为${saveChapterOpenSaveAs === 'epub' ? 'EPUB' : 'TXT ZIP'}`}
                     okText="保存"
                     cancelText="取消"
                 >
@@ -109,6 +120,18 @@ export default function BookIndex() {
                         onChange={(checked) => setDownloadOptions({ ...downloadOptions, skipUnsavedChapters: checked })}
                         label="跳过未保存章节"
                     />
+                    {saveChapterOpenSaveAs === 'txtzip' && (<>
+                        <SwitchLabel
+                            checked={txtzipOptions.addVolumeFolder ?? true}
+                            onChange={(checked) => setTxtZipOptions({ ...txtzipOptions, addVolumeFolder: checked })}
+                            label="为每个卷创建文件夹"
+                        />
+                        <SwitchLabel
+                            checked={txtzipOptions.useChapterNameAsFileName ?? true}
+                            onChange={(checked) => setTxtZipOptions({ ...txtzipOptions, useChapterNameAsFileName: checked })}
+                            label="使用章节名称作为文件名（否则使用章节ID）"
+                        />
+                    </>)}
                 </Modal>
                 <Button onClick={() => navigate('chapter/new')}>新章节</Button>
             </Flex>

@@ -1,24 +1,17 @@
-import { configure, ZipWriter, TextReader, BlobReader, WritableWriter } from "@zip.js/zip.js";
+import { ZipWriter, TextReader, BlobReader, WritableWriter } from "@zip.js/zip.js";
 import type { Reader, ReadableReader, ZipWriterAddDataOptions } from "@zip.js/zip.js";
 import { EpubPackage, EpubManifestItem, EpubItemRef } from "./package";
 import { EpubNav, to_nav_xhtml } from "./nav";
+import { makesure_zip_configured } from "../utils/zip";
 
 type StreamType<T> = Reader<T> | ReadableReader | ReadableStream | Reader<unknown>[] | ReadableReader[] | ReadableStream[];
-
-let configured = false;
 
 export class Epub<T extends WritableStream | WritableWriter> {
     zip: ZipWriter<T>;
     package;
     #inited;
     constructor(blob: T) {
-        if (!configured) {
-            configure({
-                useWebWorkers: false,
-                useCompressionStream: true,
-            })
-            configured = true;
-        }
+        makesure_zip_configured();
         this.zip = new ZipWriter(blob);
         this.package = new EpubPackage();
         this.#inited = false;

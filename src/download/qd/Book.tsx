@@ -1,4 +1,4 @@
-import type { QdBookDownloadOptions, QdBookInfo, QdChapterInfo } from "../../types";
+import type { QdBookDownloadOptions, QdBookInfo, QdBookTxtZipOptions, QdChapterInfo } from "../../types";
 import { Epub } from "../../epub/base";
 import { EpubNavItem } from "../../epub/nav";
 import { useEffect, useState } from "react";
@@ -6,12 +6,21 @@ import { Result } from "antd";
 import { ChapterShowMode, get_new_volumes } from "../../utils/qd";
 import { createDb } from "../../db/interfaces";
 import { get_chapter_content } from "../../utils";
+import { makesure_zip_configured } from "../../utils/zip";
+import { ZipWriter, TextReader } from "@zip.js/zip.js";
+import { filter_filename } from "../../utils/filename";
 
 
 export interface QdBookProps {
     info: QdBookInfo,
     options?: QdBookDownloadOptions,
-    save_type: 'epub',
+    save_type: 'epub' | 'txtzip',
+    txtzip?: QdBookTxtZipOptions,
+}
+
+const ExtMap = {
+    'epub': 'epub',
+    'txtzip': 'zip',
 }
 
 async function download_cover(url: string) {
@@ -43,7 +52,19 @@ function generate_titlepage(bookInfo: QdBookInfo) {
     return new XMLSerializer().serializeToString(xhtml);
 }
 
-function generate_chapter_page(ch: QdChapterInfo) {
+function generate_chapter_page(ch: QdChapterInfo, use_xhtml = true) {
+    if (!use_xhtml) {
+        let content = `${ch.chapterInfo.chapterName}\n\n`;
+        const contents = ch.contents ?? get_chapter_content(ch.chapterInfo.content);
+        for (const line of contents) {
+            let c = line;
+            if (c.endsWith('\r')) {
+                c = c.slice(0, -1);
+            }
+            content += c + '\n';
+        }
+        return content;
+    }
     const xhtml = document.implementation.createDocument(null, 'html', null);
     const html = xhtml.documentElement;
     xhtml.insertBefore(xhtml.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"'), html);
@@ -71,7 +92,10 @@ function generate_chapter_page(ch: QdChapterInfo) {
     return new XMLSerializer().serializeToString(xhtml);
 }
 
-function generate_empty_chapter(title: string, status = '未保存') {
+function generate_empty_chapter(title: string, status = '未保存', use_xhtml = true) {
+    if (!use_xhtml) {
+        return `${title}（${status}）\n\n`;
+    }
     const xhtml = document.implementation.createDocument(null, 'html', null);
     const html = xhtml.documentElement;
     xhtml.insertBefore(xhtml.createProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"'), html);
@@ -89,23 +113,29 @@ function generate_empty_chapter(title: string, status = '未保存') {
     return new XMLSerializer().serializeToString(xhtml);
 }
 
-export default function Book({info, options, save_type}: QdBookProps) {
+export default function Book({info, options, save_type, txtzip}: QdBookProps) {
     const [err, setErr] = useState<string | null>(null);
     const [ok, setOk] = useState(false);
     const [total, setTotal] = useState<number>(0);
     const [current, setCurrent] = useState<number>(0);
     const [msg, setMsg] = useState<string>('');
     async function save() {
+        const filePickerType: FilePickerAcceptType = save_type === 'epub' ? {
+            description: 'EPUB File',
+            accept: {'application/epub+zip': ['.epub']}
+        } : {
+            description: 'ZIP File',
+            accept: {'application/zip': ['.zip']}
+        };
         const pickerOptions: SaveFilePickerOptions = {
-            suggestedName: `${info.bookName}.${save_type}`,
-            types: [{
-                description: 'EPUB File',
-                accept: {'application/epub+zip': ['.epub']}
-            }],
+            suggestedName: `${info.bookName}.${ExtMap[save_type]}`,
+            types: [filePickerType],
         };
         const fileHandle = await window.showSaveFilePicker(pickerOptions);
         const writable = await fileHandle.createWritable();
-        const epub = new Epub(writable);
+        const epub = save_type === 'epub' ? new Epub(writable) : undefined;
+        const zip = save_type === 'txtzip' ? (makesure_zip_configured(), new ZipWriter(writable)) : undefined;
+        const xhtml = save_type === 'epub';
         if (epub) {
             setMsg('初始化EPUB文件');
             await epub.init();
@@ -158,6 +188,7 @@ export default function Book({info, options, save_type}: QdBookProps) {
         let batchChs: (QdChapterInfo | undefined)[] = []
         const batchSize = db.batchSize();
         const chKeys: Map<number, unknown> = new Map();
+        const nameSets: Set<string> = new Set();
         let c = 0;
         for (const ch of chapters) {
             chKeys.set(ch.id, ch.primaryKey);
@@ -210,9 +241,9 @@ export default function Book({info, options, save_type}: QdBookProps) {
                     if (skipNotBoughtChapters && !ch.chapterInfo.isBuy) {
                         continue;
                     }
-                    page = generate_chapter_page(ch);
+                    page = generate_chapter_page(ch, xhtml);
                 } else {
-                    page = generate_empty_chapter(chapter.name);
+                    page = generate_empty_chapter(chapter.name, '未保存', xhtml);
                     it.name += '（未保存）';
                 }
                 if (epub) {
@@ -223,6 +254,17 @@ export default function Book({info, options, save_type}: QdBookProps) {
                     epub.add_spine(id, {
                         linear: vol.name !== '作品相关',
                     });
+                }
+                if (zip) {
+                    const addVolFolder = txtzip?.addVolumeFolder ?? true;
+                    const useChapterNameAsFileName = txtzip?.useChapterNameAsFileName ?? true;
+                    const fileName = useChapterNameAsFileName ? filter_filename(it.name) : `ch_${chapter.id}`;
+                    let path = addVolFolder ? `${filter_filename(vol.name)}/${fileName}` : fileName;
+                    if (nameSets.has(path)) {
+                        path += `_${chapter.id}`;
+                    }
+                    nameSets.add(path);
+                    await zip.add(path + '.txt', new TextReader(page));
                 }
                 volNav.children!.push(it);
                 if (volNav.href === undefined) {
@@ -238,6 +280,10 @@ export default function Book({info, options, save_type}: QdBookProps) {
                 items: navs,
             });
             await epub.save();
+            setOk(true);
+        }
+        if (zip) {
+            await zip.close();
             setOk(true);
         }
     }

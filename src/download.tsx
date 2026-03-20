@@ -16,12 +16,22 @@ function Download() {
                     code: 0,
                     for: m.type,
                 } as Message);
+            } else if (m.type === 'DownloadQdBookAsTxtZip') {
+                setMessage(m);
+                sendResponse({
+                    ok: true,
+                    code: 0,
+                    for: m.type,
+                } as Message);
             }
         });
     }, []);
     return (<>
         {message && message.type === 'DownloadQdBookAsEpub' &&
             <QdBook info={message.info} options={message.options} save_type='epub' />
+        }
+        {message && message.type === 'DownloadQdBookAsTxtZip' &&
+            <QdBook info={message.info} options={message.options} txtzip={message.txtzip} save_type='txtzip' />
         }
         {!message && <Result
             title="等待下载指令..."

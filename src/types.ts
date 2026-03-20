@@ -55,6 +55,13 @@ export interface QdBookDownloadOptions {
     skipNotBoughtChapters?: boolean;
 }
 
+export interface QdBookTxtZipOptions {
+    /**@default {true} */
+    addVolumeFolder?: boolean;
+    /**@default {true} */
+    useChapterNameAsFileName?: boolean;
+}
+
 export type SendMessageMap = {
     GetQdChapterInfo: {};
     GetQdBookInfo: {};
@@ -64,6 +71,11 @@ export type SendMessageMap = {
     DownloadQdBookAsEpub: {
         info: QdBookInfo;
         options?: QdBookDownloadOptions;
+    },
+    DownloadQdBookAsTxtZip: {
+        info: QdBookInfo;
+        options?: QdBookDownloadOptions;
+        txtzip?: QdBookTxtZipOptions;
     }
 }
 
